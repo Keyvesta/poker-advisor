@@ -2,755 +2,1818 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#0a0a0f">
-<title>🕹️ Paris Invaders</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css"/>
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@900&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-title" content="ACE•IQ">
+<meta name="theme-color" content="#06060e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>ACE•IQ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#0a0a0f;--panel:#0f0f1a;--border:#1a1a2e;--ok:#00ff88;--damaged:#ffaa00;--destroyed:#ff3355;--hidden:#8888ff;--text:#c8c8e8;--accent:#00ffcc}
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--text);font-family:'Share Tech Mono',monospace;height:100vh;display:flex;flex-direction:column;overflow:hidden}
-/* SPLASH */
-#splash{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:20px;transition:opacity .4s}
-#splash-title{font-family:'Orbitron',monospace;font-weight:900;font-size:28px;color:var(--accent);text-shadow:0 0 30px rgba(0,255,204,.6);letter-spacing:4px;animation:pulse 2s infinite}
-#splash-title s{color:#ff3355;text-decoration:none}
-@keyframes pulse{0%,100%{text-shadow:0 0 20px rgba(0,255,204,.4)}50%{text-shadow:0 0 50px rgba(0,255,204,.9)}}
-#splash-bar-bg{width:280px;height:2px;background:#1a1a2e;border-radius:1px;overflow:hidden}
-#splash-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--ok),var(--accent));transition:width .3s ease}
-#splash-msg{font-size:11px;color:#444;letter-spacing:2px}
-#splash-msg::after{content:'_';animation:blink 1s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-/* HEADER */
-#hd{background:var(--panel);border-bottom:1px solid var(--border);padding:6px 10px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;z-index:1000;flex-shrink:0}
-#tt{font-family:'Orbitron',monospace;font-weight:900;font-size:12px;color:var(--accent);letter-spacing:2px;white-space:nowrap}
-#tt s{color:#ff3355;text-decoration:none}
-#st{display:flex;gap:4px;flex-wrap:wrap}
-.stat{display:flex;align-items:center;gap:3px;font-size:10px;padding:2px 5px;border-radius:3px;border:1px solid;cursor:pointer;transition:all .2s;user-select:none;white-space:nowrap}
-.stat.off{opacity:.2}
-.ok{color:var(--ok);border-color:var(--ok)}.ok.on{background:rgba(0,255,136,.1)}
-.dm{color:var(--damaged);border-color:var(--damaged)}.dm.on{background:rgba(255,170,0,.1)}
-.ds{color:var(--destroyed);border-color:var(--destroyed)}.ds.on{background:rgba(255,51,85,.1)}
-.hd{color:var(--hidden);border-color:var(--hidden)}.hd.on{background:rgba(136,136,255,.1)}
-.dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
-.ok .dot{background:var(--ok)}.dm .dot{background:var(--damaged)}.ds .dot{background:var(--destroyed)}.hd .dot{background:var(--hidden)}
-#rg{display:flex;align-items:center;gap:5px;margin-left:auto}
-#sr{background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:11px;padding:3px 7px;border-radius:3px;width:80px;outline:none}
-#sr:focus{border-color:var(--accent)}#sr::placeholder{color:#333}
-#vc{font-size:10px;color:#555;white-space:nowrap}#vc b{color:var(--accent);font-weight:normal}
-.hbtn{background:transparent;border:1px solid #252535;color:#555;font-size:13px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:3px;transition:all .2s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
-.hbtn.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 8px rgba(0,255,204,.3)}
-/* MAP */
-#map{flex:1;background:#050510;position:relative}
-/* FOOTER */
-#ft{background:var(--panel);border-top:1px solid var(--border);padding:4px 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;font-size:10px;color:#555;flex-wrap:wrap}
-#ft b{color:var(--accent);font-weight:normal}
-.fb{background:transparent;border:1px solid #252535;color:#555;font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 6px;cursor:pointer;border-radius:2px;transition:all .2s;-webkit-tap-highlight-color:transparent}
-.fb:hover,.fb:active{border-color:var(--accent);color:var(--accent)}
-#gps-info{margin-left:auto;color:#333;font-size:10px;white-space:nowrap}
-/* ALERTE PROXIMITE */
-#alert{position:fixed;top:0;left:0;right:0;z-index:9998;background:linear-gradient(135deg,#060e06,#0a1a0a);border-bottom:2px solid var(--ok);padding:8px 12px;display:none;align-items:center;gap:8px;animation:slideDown .3s ease}
-@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
-#alert-title{font-family:'Orbitron',monospace;font-size:11px;color:var(--ok);display:flex;align-items:center;gap:5px;white-space:nowrap}
-.blink{animation:blink 0.7s infinite}
-#alert-info{font-size:11px;color:#aaa;flex:1}
-#alert-nav{background:transparent;border:1px solid var(--ok);color:var(--ok);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;white-space:nowrap}
-#alert-close{background:transparent;border:1px solid #1a3a1a;color:#555;font-size:10px;padding:2px 7px;cursor:pointer;border-radius:2px;font-family:'Share Tech Mono',monospace;white-space:nowrap}
-/* PANEL RADAR */
-#radar{position:fixed;bottom:44px;left:0;right:0;z-index:9000;background:var(--panel);border-top:1px solid var(--border);padding:8px 10px;display:none;flex-direction:column;gap:6px;max-height:55vh;overflow:hidden}
-#radar-hd{display:flex;align-items:center;gap:8px}
-#radar-title{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent)}
-#radar-radius{display:flex;align-items:center;gap:6px;margin-left:auto;font-size:10px;color:#555}
-#radius-val{color:var(--accent)}
-#radar-list{overflow-y:auto;display:flex;flex-direction:column;gap:4px;max-height:calc(55vh - 40px)}
-.radar-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid #1a1a2e;border-radius:3px;cursor:pointer;transition:all .15s}
-.radar-item:hover,.radar-item:active{border-color:var(--accent)}
-.radar-item.fl{opacity:.4}
-.ri-id{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);width:70px;flex-shrink:0}
-.ri-dist{font-size:11px;color:#777;width:42px;flex-shrink:0}
-.ri-status{font-size:9px;padding:1px 5px;border-radius:2px;flex-shrink:0}
-.ri-hint{font-size:9px;color:#555;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ri-nav{background:transparent;border:1px solid #252535;color:#555;font-size:10px;padding:1px 6px;cursor:pointer;border-radius:2px;flex-shrink:0;font-family:'Share Tech Mono',monospace}
-.ri-nav:hover{border-color:var(--accent);color:var(--accent)}
-/* PANEL STATS */
-#stats-panel{position:fixed;top:0;left:0;right:0;bottom:0;z-index:9990;background:var(--bg);overflow-y:auto;display:none;flex-direction:column}
-#stats-hd{background:var(--panel);border-bottom:1px solid var(--border);padding:10px 14px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:1}
-#stats-title{font-family:'Orbitron',monospace;font-size:13px;color:var(--accent)}
-#stats-close{margin-left:auto;background:transparent;border:1px solid #252535;color:#555;font-size:12px;padding:3px 10px;cursor:pointer;border-radius:3px;font-family:'Share Tech Mono',monospace}
-#stats-close:hover{border-color:var(--accent);color:var(--accent)}
-#stats-body{padding:12px}
-.stats-global{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
-.sg-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px;text-align:center}
-.sg-val{font-family:'Orbitron',monospace;font-size:22px;color:var(--accent);font-weight:900}
-.sg-lbl{font-size:9px;color:#555;letter-spacing:1px;margin-top:3px}
-.sg-bar{height:3px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden}
-.sg-bar-fill{height:100%;background:linear-gradient(90deg,var(--ok),var(--accent));transition:width .5s ease}
-#arr-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.arr-card{background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:8px;cursor:pointer;transition:all .2s}
-.arr-card:hover{border-color:var(--accent)}
-.arr-num{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);margin-bottom:4px}
-.arr-prog{font-size:10px;color:#777;margin-bottom:5px}
-.arr-bar{height:2px;background:var(--border);border-radius:1px;overflow:hidden}
-.arr-bar-fill{height:100%;background:linear-gradient(90deg,var(--ok),var(--accent));transition:width .5s ease}
-.arr-counts{display:flex;gap:4px;margin-top:5px;font-size:9px}
-/* PANEL ITINERAIRE */
-#rando-panel{position:fixed;bottom:44px;right:8px;z-index:9001;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:10px;display:none;width:240px;max-height:60vh;overflow-y:auto}
-#rando-title{font-family:'Orbitron',monospace;font-size:11px;color:var(--accent);margin-bottom:8px}
-#rando-config{display:flex;flex-direction:column;gap:6px;font-size:10px;color:#777}
-#rando-config label{display:flex;align-items:center;justify-content:space-between;gap:8px}
-#rando-config input[type=range]{flex:1;accent-color:var(--accent)}
-#rando-config span{color:var(--accent);width:35px;text-align:right}
-#rando-start{width:100%;margin-top:8px;background:transparent;border:1px solid var(--accent);color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:11px;padding:5px;cursor:pointer;border-radius:3px;transition:all .2s}
-#rando-start:hover{background:rgba(0,255,204,.1)}
-#rando-route{margin-top:8px;display:none}
-.rando-stop{font-size:10px;color:#aaa;padding:3px 0;border-bottom:1px solid #1a1a2e;display:flex;align-items:center;gap:6px}
-.rando-stop-num{color:var(--accent);font-family:'Orbitron',monospace;font-size:9px;width:16px;flex-shrink:0}
-.rando-stop-id{color:var(--accent);width:60px;flex-shrink:0;font-family:'Orbitron',monospace;font-size:9px}
-.rando-stop-d{color:#555;width:35px;flex-shrink:0}
-.rando-stop-nav{background:transparent;border:1px solid #252535;color:#555;font-size:9px;padding:1px 4px;cursor:pointer;border-radius:2px;font-family:'Share Tech Mono',monospace;margin-left:auto}
-.rando-stop-nav:hover{border-color:var(--accent);color:var(--accent)}
-/* SLIDER RAYON */
-input[type=range]{-webkit-appearance:none;appearance:none;height:2px;background:var(--border);border-radius:1px;outline:none}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer}
-/* LEAFLET */
-.leaflet-container{background:#080810!important}
-.leaflet-tile{filter:grayscale(100%) brightness(.35) sepia(.4) hue-rotate(200deg)}
-.leaflet-popup-content-wrapper{background:var(--panel);border:1px solid #252535;border-radius:4px;box-shadow:0 4px 24px rgba(0,0,0,.9)}
-.leaflet-popup-tip{background:var(--panel)}
-.leaflet-popup-close-button{color:#444!important}
-.leaflet-popup-content{color:var(--text);font-family:'Share Tech Mono',monospace;font-size:12px;margin:10px 14px;min-width:158px}
-.pi{font-family:'Orbitron',monospace;font-weight:900;font-size:14px;color:var(--accent);margin-bottom:4px}
-.ps{padding:2px 7px;border-radius:2px;font-size:10px;display:inline-block}
-.ps.OK{background:rgba(0,255,136,.1);color:var(--ok);border:1px solid var(--ok)}
-.ps.damaged{background:rgba(255,170,0,.1);color:var(--damaged);border:1px solid var(--damaged)}
-.ps.destroyed{background:rgba(255,51,85,.1);color:var(--destroyed);border:1px solid var(--destroyed)}
-.ps.hidden{background:rgba(136,136,255,.1);color:var(--hidden);border:1px solid var(--hidden)}
-.ph{color:#666;font-size:10px;margin-top:5px;font-style:italic;line-height:1.4}
-.pa{margin-top:8px;display:flex;gap:5px;flex-wrap:wrap}
-.pb{flex:1;background:transparent;border:1px solid #252535;color:#666;font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px;cursor:pointer;border-radius:2px;text-align:center;text-decoration:none;display:block;transition:all .15s;white-space:nowrap}
-.pb:hover,.pb:active{border-color:var(--accent);color:var(--accent)}
-.pf{border-color:var(--ok)!important;color:var(--ok)!important}
-.pf.fl{background:rgba(0,255,136,.1)!important}
-.pnav{border-color:var(--accent)!important;color:var(--accent)!important}
-.my-dot{width:14px;height:14px;border-radius:50%;background:var(--accent);border:2px solid rgba(255,255,255,.9);box-shadow:0 0 0 4px rgba(0,255,204,.25),0 0 12px rgba(0,255,204,.4)}
-.route-line{stroke:rgba(0,255,204,.5);stroke-width:2;stroke-dasharray:6,4;fill:none}
+/* ═══════════════════════════════════════
+   DESIGN SYSTEM
+═══════════════════════════════════════ */
+:root {
+  --bg:     #06060e;
+  --s1:     #0d0d1a;
+  --s2:     #141425;
+  --s3:     #1c1c30;
+  --border: #252540;
+  --border2:#323258;
+  --green:  #00ff9d;
+  --red:    #ff3b5c;
+  --amber:  #ffaa00;
+  --blue:   #4d8fff;
+  --cyan:   #00d4ff;
+  --purple: #b06cff;
+  --text:   #e0e0f0;
+  --muted:  #525272;
+  --muted2: #8888aa;
+  --r: 12px;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
+  padding-bottom: 72px;
+}
+
+/* ═══════════════════════════════════════
+   TYPOGRAPHY
+═══════════════════════════════════════ */
+.t-display { font-family: var(--font-display); font-weight: 800; }
+.t-label   { font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; }
+.t-green { color: var(--green); }
+.t-red   { color: var(--red); }
+.t-amber { color: var(--amber); }
+.t-blue  { color: var(--blue); }
+.t-cyan  { color: var(--cyan); }
+.t-purple{ color: var(--purple); }
+.t-muted { color: var(--muted2); }
+
+/* ═══════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════ */
+.screen { display: none; padding: 14px; animation: fadeUp .2s ease; }
+.screen.active { display: block; }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.section { margin-bottom: 20px; }
+.section-title { margin-bottom: 10px; }
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
+.row { display: flex; gap: 8px; align-items: center; }
+.col { display: flex; flex-direction: column; gap: 6px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7px; }
+
+/* ═══════════════════════════════════════
+   HEADER
+═══════════════════════════════════════ */
+.hdr {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(6,6,14,.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+  font-family: var(--font-display); font-weight: 800; font-size: 20px; letter-spacing: 3px;
+  background: linear-gradient(90deg, var(--green), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hdr-session {
+  font-size: 10px; padding: 4px 10px; border-radius: 20px;
+  border: 1px solid var(--border); color: var(--muted2); cursor: pointer;
+  transition: all .2s;
+}
+.hdr-session.on { border-color: var(--green); color: var(--green); }
+
+/* ═══════════════════════════════════════
+   BOTTOM NAV
+═══════════════════════════════════════ */
+.bnav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px; z-index: 50;
+  background: rgba(6,6,14,.97);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; padding: 10px 4px 11px; cursor: pointer; gap: 3px;
+  transition: opacity .15s;
+}
+.nav-item .icon { font-size: 20px; line-height: 1; transition: filter .2s; }
+.nav-item .label { font-size: 8px; letter-spacing: 1px; color: var(--muted); transition: color .2s; }
+.nav-item.active .label { color: var(--green); }
+.nav-item.active .icon { filter: drop-shadow(0 0 8px var(--green)); }
+
+/* ═══════════════════════════════════════
+   CARDS & COMPONENTS
+═══════════════════════════════════════ */
+/* Info card */
+.card {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 14px;
+}
+.card.green  { border-color: var(--green);  background: rgba(0,255,157,.03); }
+.card.red    { border-color: var(--red);    background: rgba(255,59,92,.03); }
+.card.amber  { border-color: var(--amber);  background: rgba(255,170,0,.03); }
+.card.blue   { border-color: var(--blue);   background: rgba(77,143,255,.03); }
+.card.purple { border-color: var(--purple); background: rgba(176,108,255,.03); }
+.card-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; margin-bottom: 8px; }
+.card-body  { font-size: 11px; color: var(--muted2); line-height: 1.8; }
+.card-body strong { color: var(--text); }
+
+/* Stat card */
+.stat {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 12px; text-align: center;
+}
+.stat-val { font-family: var(--font-display); font-weight: 800; font-size: 26px; line-height: 1; }
+.stat-lbl { font-size: 9px; letter-spacing: 1.5px; color: var(--muted); margin-top: 4px; }
+
+/* Progress bar */
+.pbar { height: 5px; background: var(--s3); border-radius: 3px; overflow: hidden; }
+.pbar-fill { height: 100%; border-radius: 3px; transition: width .7s cubic-bezier(.4,0,.2,1); }
+
+/* Badge */
+.badge {
+  display: inline-block; padding: 3px 9px; border-radius: 20px;
+  font-size: 10px; border: 1px solid var(--border); background: var(--s2); color: var(--muted2);
+}
+.badge.green { border-color: var(--green); color: var(--green); background: rgba(0,255,157,.07); }
+.badge.amber { border-color: var(--amber); color: var(--amber); background: rgba(255,170,0,.07); }
+.badge.red   { border-color: var(--red);   color: var(--red);   background: rgba(255,59,92,.07); }
+
+/* ═══════════════════════════════════════
+   INPUTS
+═══════════════════════════════════════ */
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 9px; letter-spacing: 1.5px; color: var(--muted); }
+.field input, .field select, .field textarea {
+  background: var(--s2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 10px 12px;
+  color: var(--text); font-family: var(--font-mono); font-size: 13px;
+  width: 100%; outline: none; transition: border-color .15s;
+  -webkit-appearance: none; appearance: none;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); }
+.field select option { background: var(--s2); }
+.field textarea { resize: none; height: 64px; font-size: 12px; line-height: 1.6; }
+
+/* ═══════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════ */
+.btn {
+  display: block; width: 100%; padding: 14px;
+  border-radius: var(--r); border: none; cursor: pointer;
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 15px; letter-spacing: 2px; text-align: center;
+  transition: all .2s; -webkit-appearance: none;
+}
+.btn-green  { background: linear-gradient(135deg, var(--green), var(--cyan)); color: #040412; }
+.btn-amber  { background: linear-gradient(135deg, var(--amber), #ff6600); color: #040412; }
+.btn-blue   { background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #040412; }
+.btn-purple { background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff; }
+.btn-ghost  { background: transparent; border: 1px solid var(--border); color: var(--muted2); font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; }
+.btn:hover  { transform: translateY(-1px); filter: brightness(1.08); }
+.btn:active { transform: scale(.98); }
+.btn:disabled { opacity: .3; cursor: not-allowed; transform: none; filter: none; }
+.btn-sm { width: auto; padding: 8px 16px; font-size: 11px; letter-spacing: 1px; border-radius: 8px; }
+
+/* ═══════════════════════════════════════
+   PILL SELECTOR (tabs / choices)
+═══════════════════════════════════════ */
+.pills { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+.pill {
+  padding: 7px 14px; border-radius: 20px;
+  border: 1px solid var(--border); background: var(--s1);
+  cursor: pointer; font-size: 11px; color: var(--muted2);
+  transition: all .15s; white-space: nowrap;
+}
+.pill.active        { border-color: var(--green); color: var(--green); background: rgba(0,255,157,.07); }
+.pill.active.amber  { border-color: var(--amber); color: var(--amber); background: rgba(255,170,0,.07); }
+.pill.active.red    { border-color: var(--red);   color: var(--red);   background: rgba(255,59,92,.07); }
+.pill.active.blue   { border-color: var(--blue);  color: var(--blue);  background: rgba(77,143,255,.07); }
+.pill.active.purple { border-color: var(--purple); color: var(--purple); background: rgba(176,108,255,.07); }
+
+/* Street tabs */
+.street-pills { display: flex; gap: 5px; margin-bottom: 14px; }
+.street-pill {
+  flex: 1; padding: 9px 4px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--s1);
+  cursor: pointer; text-align: center;
+  font-size: 10px; letter-spacing: 1px; color: var(--muted);
+  transition: all .15s;
+}
+.street-pill.active { border-color: var(--blue); background: rgba(77,143,255,.07); color: var(--blue); }
+
+/* ═══════════════════════════════════════
+   CARD SLOTS
+═══════════════════════════════════════ */
+.card-row { display: flex; gap: 7px; align-items: center; }
+.cslot {
+  width: 50px; height: 68px; border-radius: 8px;
+  border: 1.5px dashed var(--border2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; background: var(--s1); transition: all .15s;
+  position: relative; flex-shrink: 0; gap: 1px;
+  -webkit-user-select: none; user-select: none;
+}
+.cslot:active { transform: scale(.93); }
+.cslot.filled { border-style: solid; border-color: var(--border); }
+.cslot .rank { font-family: var(--font-display); font-weight: 800; font-size: 18px; line-height: 1; }
+.cslot .suit { font-size: 16px; line-height: 1; }
+.cslot.red-card .rank, .cslot.red-card .suit { color: var(--red); }
+.cslot.black-card .rank, .cslot.black-card .suit { color: #dde0f0; }
+.cslot .del { position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; background: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; z-index: 2; }
+.cslot-placeholder { color: var(--muted); font-size: 20px; }
+
+/* ═══════════════════════════════════════
+   ACTION CARDS (fold/call/raise)
+═══════════════════════════════════════ */
+.action-card {
+  border-radius: var(--r); padding: 16px; margin-bottom: 8px;
+  border: 1.5px solid; position: relative; overflow: hidden;
+  transition: transform .15s;
+}
+.action-card::before { content: ''; position: absolute; inset: 0; opacity: .05; }
+.action-card.fold  { border-color: var(--red); }   .action-card.fold::before  { background: var(--red); }
+.action-card.call  { border-color: var(--amber); } .action-card.call::before  { background: var(--amber); }
+.action-card.raise { border-color: var(--green); } .action-card.raise::before { background: var(--green); }
+.action-card.best  { transform: scale(1.015); box-shadow: 0 4px 24px rgba(0,255,157,.1); }
+.action-card.fold.best  { box-shadow: 0 4px 24px rgba(255,59,92,.1); }
+.action-card.call.best  { box-shadow: 0 4px 24px rgba(255,170,0,.1); }
+.action-name { font-family: var(--font-display); font-weight: 800; font-size: 22px; }
+.action-card.fold  .action-name { color: var(--red); }
+.action-card.call  .action-name { color: var(--amber); }
+.action-card.raise .action-name { color: var(--green); }
+.best-tag {
+  position: absolute; top: 7px; right: 7px;
+  background: var(--green); color: #040412;
+  font-size: 9px; letter-spacing: 1px; padding: 3px 8px; border-radius: 4px; font-weight: 700;
+}
+
+/* ═══════════════════════════════════════
+   MODAL (card picker)
+═══════════════════════════════════════ */
+.modal-bg {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,.88); align-items: flex-end;
+}
+.modal-bg.open { display: flex; }
+.modal-sheet {
+  background: var(--s1); border-radius: 18px 18px 0 0;
+  padding: 18px 14px 32px; width: 100%; max-width: 480px; margin: 0 auto;
+  border-top: 1px solid var(--border); animation: slideUp .25s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+.suit-row { display: flex; gap: 6px; margin-bottom: 12px; }
+.suit-btn {
+  flex: 1; padding: 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--s2);
+  cursor: pointer; text-align: center; font-size: 22px;
+  transition: all .15s;
+}
+.suit-btn.active { border-color: var(--green); background: rgba(0,255,157,.07); }
+.suit-btn.red { color: var(--red); }
+.rank-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 5px; }
+.rank-btn {
+  aspect-ratio: 1; border-radius: 7px; border: 1px solid var(--border);
+  background: var(--s2); cursor: pointer; text-align: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 17px;
+  color: var(--text); transition: all .15s; display: flex; align-items: center; justify-content: center;
+}
+.rank-btn:hover { border-color: var(--green); }
+.rank-btn.used  { opacity: .2; cursor: not-allowed; }
+.rank-btn.red   { color: var(--red); }
+
+/* ═══════════════════════════════════════
+   POSITION GRID
+═══════════════════════════════════════ */
+.pos-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 5px; }
+.pos-btn {
+  padding: 8px 2px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--s1);
+  cursor: pointer; text-align: center;
+  font-size: 10px; color: var(--muted); transition: all .15s;
+}
+.pos-btn.active { border-color: var(--green); background: rgba(0,255,157,.07); color: var(--green); }
+
+/* ═══════════════════════════════════════
+   HAND LOG ENTRY
+═══════════════════════════════════════ */
+.hand-entry {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; background: var(--s1);
+  border-radius: 8px; border: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.mini-card {
+  width: 30px; height: 40px; border-radius: 4px;
+  border: 1px solid var(--border); background: var(--s2);
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; flex-shrink: 0;
+}
+.mini-rank { font-family: var(--font-display); font-weight: 800; font-size: 12px; line-height: 1; }
+.mini-suit { font-size: 10px; }
+.mini-card.red-card .mini-rank, .mini-card.red-card .mini-suit { color: var(--red); }
+
+/* ═══════════════════════════════════════
+   SPINNER
+═══════════════════════════════════════ */
+.spinner-wrap { display: none; text-align: center; padding: 40px 0; }
+.spinner-wrap.on { display: block; }
+.spinner {
+  width: 36px; height: 36px; margin: 0 auto 10px;
+  border: 3px solid var(--border); border-top-color: var(--green);
+  border-radius: 50%; animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ═══════════════════════════════════════
+   BLIND CLOCK
+═══════════════════════════════════════ */
+.blind-clock {
+  background: var(--s1); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 20px; text-align: center; margin-bottom: 14px;
+}
+.blind-time {
+  font-family: var(--font-display); font-weight: 800;
+  font-size: 56px; letter-spacing: -2px; line-height: 1;
+  transition: color .3s;
+}
+.blind-time.warn     { color: var(--amber); }
+.blind-time.critical { color: var(--red); animation: pulse 1s ease infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .6; } }
+.blind-level-display {
+  font-family: var(--font-display); font-weight: 700;
+  font-size: 22px; color: var(--amber); margin-bottom: 6px;
+}
+.blind-clock-controls { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+.clock-btn {
+  padding: 10px 20px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--s2);
+  color: var(--text); font-family: var(--font-mono); font-size: 12px;
+  cursor: pointer; transition: all .15s;
+}
+.clock-btn:hover { border-color: var(--amber); color: var(--amber); }
+.clock-btn.primary { border-color: var(--green); color: var(--green); }
+
+/* ═══════════════════════════════════════
+   VILLAIN SLIDERS
+═══════════════════════════════════════ */
+.slider-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.slider-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted2); }
+.slider-label span { color: var(--text); font-weight: 600; }
+input[type=range] {
+  width: 100%; height: 4px; border-radius: 2px;
+  outline: none; border: none; cursor: pointer;
+  -webkit-appearance: none; appearance: none;
+  background: var(--s3);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 18px; height: 18px;
+  border-radius: 50%; background: var(--cyan); cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,212,255,.3);
+}
+
+/* ═══════════════════════════════════════
+   RANGE SELECTOR
+═══════════════════════════════════════ */
+.range-matrix {
+  display: grid; grid-template-columns: repeat(13,1fr); gap: 2px; margin: 8px 0;
+}
+.rc-cell {
+  aspect-ratio: 1; border-radius: 3px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 7px;
+  transition: filter .1s; user-select: none; -webkit-user-select: none;
+}
+.rc-cell:active { filter: brightness(1.4); }
+.rc-cell.in    { background: rgba(0,255,157,.72); color: #040412; }
+.rc-cell.out   { background: var(--s3); color: var(--muted); }
+.range-pct-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.range-pct-row input[type=range] { flex: 1; }
+.range-pct-val { font-family: var(--font-display); font-weight: 800; font-size: 20px; color: var(--cyan); min-width: 48px; text-align: right; }
+.range-combos  { font-size: 10px; color: var(--muted2); margin-top: 4px; }
+.range-presets { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+.range-preset  { padding: 5px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--s2); font-size: 10px; color: var(--muted2); cursor: pointer; transition: all .15s; }
+.range-preset:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ═══════════════════════════════════════
+   PUSH/FOLD MATRIX
+═══════════════════════════════════════ */
+.pf-matrix { display: grid; grid-template-columns: repeat(13,1fr); gap: 2px; margin: 10px 0; }
+.pf-cell {
+  aspect-ratio: 1; border-radius: 3px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-weight: 700; font-size: 7px;
+  transition: filter .1s;
+}
+.pf-cell:hover { filter: brightness(1.3); }
+.pf-cell.push     { background: rgba(0,255,157,.7); color: #040412; }
+.pf-cell.marginal { background: rgba(255,170,0,.65); color: #040412; }
+.pf-cell.fold     { background: var(--s3); color: var(--muted); }
+.pf-cell.selected { outline: 2px solid white; outline-offset: 1px; }
+
+/* ═══════════════════════════════════════
+   ONBOARDING TOOLTIP
+═══════════════════════════════════════ */
+.tip {
+  background: var(--s2); border: 1px solid var(--border2);
+  border-radius: var(--r); padding: 14px; margin-bottom: 16px;
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.tip-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
+.tip-text { font-size: 12px; color: var(--muted2); line-height: 1.7; }
+.tip-text strong { color: var(--text); }
 </style>
 </head>
 <body>
 
-<div id="splash">
-  <div id="splash-title">🕹 PARIS<s>INVADERS</s></div>
-  <div id="splash-bar-bg"><div id="splash-bar"></div></div>
-  <div id="splash-msg">CHARGEMENT</div>
+<!-- ─── HEADER ─── -->
+<div class="hdr">
+  <div class="logo">ACE•IQ</div>
+  <div class="hdr-session" id="hdr_pill" onclick="goStats()">● OFF</div>
 </div>
 
-<div id="alert">
-  <div id="alert-title"><span class="blink">⚡</span>&nbsp;PROCHE !</div>
-  <span id="alert-info"></span>
-  <button id="alert-nav" onclick="navClosest()">🗺 Y ALLER</button>
-  <button id="alert-close" onclick="closeAlert()">✕</button>
-</div>
+<!-- ══════════════════════════════════════════
+     SCREEN 1 : ADVISOR
+══════════════════════════════════════════ -->
+<div class="screen active" id="screen-advisor">
 
-<div id="hd">
-  <div id="tt">🕹 PARIS<s>INVADERS</s></div>
-  <div id="st">
-    <div class="stat ok on" onclick="tf('OK')"><div class="dot"></div><span id="co">0</span> OK</div>
-    <div class="stat dm on" onclick="tf('damaged')"><div class="dot"></div><span id="cd">0</span> DMG</div>
-    <div class="stat ds on" onclick="tf('destroyed')"><div class="dot"></div><span id="cx">0</span> DEST</div>
-    <div class="stat hd on" onclick="tf('hidden')"><div class="dot"></div><span id="ch">0</span> HID</div>
-  </div>
-  <div id="rg">
-    <input id="sr" placeholder="PA_XXX…" oninput="si(this.value)"/>
-    <div id="vc">VIS:<b id="vn">0</b></div>
-    <button class="hbtn" id="radar-btn" onclick="toggleRadar()" title="Radar proximité">📡</button>
-    <button class="hbtn" id="rando-btn" onclick="toggleRando()" title="Itinéraire optimisé">🗺</button>
-    <button class="hbtn" onclick="showStats()" title="Stats arrondissements">📊</button>
-    <button class="hbtn" id="gps-btn" onclick="toggleGps()" title="Géolocalisation">📍</button>
-  </div>
-</div>
-
-<div id="map"></div>
-
-<div id="ft">
-  FLASHÉ:<b id="fn">0</b>/1555
-  <button class="fb" onclick="ef()">⬇ EXP</button>
-  <button class="fb" onclick="ifn()">⬆ IMP</button>
-  <button class="fb" onclick="cf()">✕ RST</button>
-  <span id="gps-info">GPS OFF</span>
-</div>
-
-<!-- RADAR PANEL -->
-<div id="radar">
-  <div id="radar-hd">
-    <div id="radar-title">⚡ RADAR</div>
-    <div id="radar-radius">
-      RAYON: <span id="radius-val">150</span>m
-      <input type="range" id="radius-slider" min="50" max="500" step="50" value="150" oninput="updateRadius(this.value)">
+  <!-- Mode switcher -->
+  <div class="section">
+    <div class="pills" style="margin-bottom:14px">
+      <div class="pill active" id="mode_cash" onclick="setMode('cash',this)">💰 Cash Game</div>
+      <div class="pill" id="mode_tourney" onclick="setMode('tourney',this)">🏆 Tournoi</div>
     </div>
-    <button class="fb" style="margin-left:8px" onclick="toggleRadar()">✕</button>
   </div>
-  <div id="radar-list"></div>
+
+  <!-- Hero cards -->
+  <div class="section">
+    <div class="t-label section-title">Mes cartes</div>
+    <div class="card-row">
+      <div class="cslot" id="h1" onclick="openPicker('h1')"><span class="cslot-placeholder">+</span></div>
+      <div class="cslot" id="h2" onclick="openPicker('h2')"><span class="cslot-placeholder">+</span></div>
+      <div style="flex:1"></div>
+      <div style="text-align:right;margin-right:4px">
+        <div class="t-label" style="font-size:8px">villain</div>
+      </div>
+      <div class="cslot" id="v1" onclick="openPicker('v1')"><span style="color:var(--muted);font-size:18px">?</span></div>
+      <div class="cslot" id="v2" onclick="openPicker('v2')"><span style="color:var(--muted);font-size:18px">?</span></div>
+    </div>
+  </div>
+
+  <!-- Street -->
+  <div class="section">
+    <div class="t-label section-title">Street</div>
+    <div class="street-pills">
+      <div class="street-pill active" onclick="setStreet('preflop',this)">PREFLOP</div>
+      <div class="street-pill" onclick="setStreet('flop',this)">FLOP</div>
+      <div class="street-pill" onclick="setStreet('turn',this)">TURN</div>
+      <div class="street-pill" onclick="setStreet('river',this)">RIVER</div>
+    </div>
+    <!-- Board cards -->
+    <div id="board_section" style="display:none">
+      <div class="t-label section-title">Board</div>
+      <div class="card-row" style="margin-bottom:14px">
+        <div class="cslot" id="b1" onclick="openPicker('b1')"><span class="cslot-placeholder">+</span></div>
+        <div class="cslot" id="b2" onclick="openPicker('b2')"><span class="cslot-placeholder">+</span></div>
+        <div class="cslot" id="b3" onclick="openPicker('b3')"><span class="cslot-placeholder">+</span></div>
+        <div class="cslot" id="b4" onclick="openPicker('b4')" style="display:none"><span class="cslot-placeholder">+</span></div>
+        <div class="cslot" id="b5" onclick="openPicker('b5')" style="display:none"><span class="cslot-placeholder">+</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Context inputs -->
+  <div class="section">
+    <div class="t-label section-title">Contexte</div>
+
+    <!-- Cash context -->
+    <div id="ctx_cash">
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>Pot (BB)</label><input type="number" id="c_pot" value="10" min="1"></div>
+        <div class="field"><label>Stack effectif (BB)</label><input type="number" id="c_stack" value="100" min="1"></div>
+        <div class="field"><label>Mise villain (BB)</label><input type="number" id="c_vbet" value="0" min="0"></div>
+        <div class="field"><label>Joueurs à table</label>
+          <select id="c_npl">
+            <option value="2">2 — Heads-Up</option><option value="3">3</option>
+            <option value="4">4</option><option value="6" selected>6 — 6-max</option>
+            <option value="9">9 — Full ring</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tourney context -->
+    <div id="ctx_tourney" style="display:none">
+      <div class="grid2" style="margin-bottom:10px">
+        <div class="field"><label>Mon stack (BB)</label><input type="number" id="t_stack" value="25" min="1" oninput="updateTourneyLive()"></div>
+        <div class="field"><label>Stack villain (BB)</label><input type="number" id="t_vilstack" value="30" min="1"></div>
+        <div class="field"><label>Pot (BB)</label><input type="number" id="t_pot" value="4" min="1"></div>
+        <div class="field"><label>Mise villain (BB)</label><input type="number" id="t_vbet" value="0" min="0"></div>
+        <div class="field"><label>Joueurs restants</label><input type="number" id="t_remain" value="18" min="2" oninput="updateTourneyLive()"></div>
+        <div class="field"><label>Places payées</label><input type="number" id="t_itm" value="9" min="1" oninput="updateTourneyLive()"></div>
+      </div>
+      <!-- Live tourney indicators -->
+      <div id="t_indicators" style="display:flex;flex-direction:column;gap:7px;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--s1)">
+          <div>
+            <div class="t-label" style="font-size:8px;margin-bottom:2px">STACK</div>
+            <div class="t-display" id="t_stack_label" style="font-size:18px;color:var(--amber)">25 BB</div>
+          </div>
+          <div style="text-align:right">
+            <div class="t-label" style="font-size:8px;margin-bottom:2px">MODE</div>
+            <div id="t_stack_mode" style="font-size:11px;color:var(--muted2)">Standard GTO</div>
+          </div>
+        </div>
+        <div style="padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--s1)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <div class="t-label" style="font-size:8px">BUBBLE PRESSURE</div>
+            <div id="t_bubble_txt" style="font-size:10px;color:var(--amber)">Modéré</div>
+          </div>
+          <div class="pbar"><div class="pbar-fill" id="t_bubble_bar" style="width:30%;background:var(--amber)"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Position -->
+    <div class="t-label section-title">Ma position</div>
+    <div class="pos-grid" style="margin-bottom:14px">
+      <div class="pos-btn" onclick="setPos('UTG',this)">UTG</div>
+      <div class="pos-btn" onclick="setPos('MP',this)">MP</div>
+      <div class="pos-btn" onclick="setPos('CO',this)">CO</div>
+      <div class="pos-btn active" onclick="setPos('BTN',this)">BTN</div>
+      <div class="pos-btn" onclick="setPos('SB',this)">SB</div>
+      <div class="pos-btn" onclick="setPos('BB',this)">BB</div>
+    </div>
+
+    <!-- RANGE VILLAIN -->
+    <div class="t-label section-title">Range villain</div>
+
+    <!-- Presets rapides -->
+    <div class="range-presets">
+      <div class="range-preset" onclick="applyRangePreset(8,  'UTG open')">UTG 8%</div>
+      <div class="range-preset" onclick="applyRangePreset(14, 'MP open')">MP 14%</div>
+      <div class="range-preset" onclick="applyRangePreset(18, 'CO open')">CO 18%</div>
+      <div class="range-preset" onclick="applyRangePreset(28, 'BTN open')">BTN 28%</div>
+      <div class="range-preset" onclick="applyRangePreset(35, 'SB open')">SB 35%</div>
+      <div class="range-preset" onclick="applyRangePreset(50, 'Fish')">🐟 50%</div>
+      <div class="range-preset" onclick="applyRangePreset(100,'Aléatoire')">100%</div>
+    </div>
+
+    <!-- Slider % -->
+    <div class="range-pct-row">
+      <input type="range" id="range_slider" min="1" max="100" value="100"
+             oninput="applyRangePreset(parseInt(this.value))">
+      <div class="range-pct-val" id="range_pct_val">100%</div>
+    </div>
+    <div class="range-combos" id="range_combos_info">1326 combos · range aléatoire</div>
+
+    <!-- Matrice 13×13 cliquable -->
+    <div class="range-matrix" id="range_matrix"></div>
+    <div style="display:flex;gap:8px;margin-top:6px;margin-bottom:4px">
+      <span class="badge" style="background:rgba(0,255,157,.12);border-color:var(--green);color:var(--green)">■ Dans la range</span>
+      <span class="badge">■ Hors range</span>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <button class="btn btn-green" id="analyze_btn" onclick="runAnalysis()">ANALYSER LA MAIN</button>
+
+  <!-- Spinner -->
+  <div class="spinner-wrap" id="spin">
+    <div class="spinner"></div>
+    <div class="t-label" style="margin-top:4px">Calcul Monte Carlo…</div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" style="display:none;margin-top:16px">
+    <div class="t-label section-title">Recommandation GTO</div>
+    <div id="res_actions"></div>
+    <div class="grid2" id="res_stats" style="margin-bottom:10px"></div>
+    <div class="card" id="res_strength" style="margin-bottom:10px"></div>
+    <div id="res_extras"></div>
+    <div id="res_log_cta" style="display:none;margin-bottom:10px">
+      <div class="card green" style="cursor:pointer;text-align:center" onclick="quickLog()">
+        <div class="card-title t-green">+ Logger cette main</div>
+        <div class="card-body">Ajoute au suivi de session</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-ghost" style="flex:1" onclick="resetResults()">↺ Nouvelle analyse</button>
+      <button class="btn btn-ghost" style="flex:1;border-color:var(--cyan);color:var(--cyan)" onclick="downloadApp()">⬇ Télécharger app</button>
+    </div>
+  </div>
 </div>
 
-<!-- RANDO PANEL -->
-<div id="rando-panel">
-  <div id="rando-title">🗺 RANDO OPTIMISÉE</div>
-  <div id="rando-config">
-    <label>Nb invaders: <input type="range" id="rando-n" min="3" max="20" step="1" value="8" oninput="document.getElementById('rando-n-val').textContent=this.value"><span id="rando-n-val">8</span></label>
-    <label>Rayon max: <input type="range" id="rando-r" min="200" max="2000" step="100" value="800" oninput="document.getElementById('rando-r-val').textContent=this.value+'m'"><span id="rando-r-val">800m</span></label>
+<!-- ══════════════════════════════════════════
+     SCREEN 2 : PUSH / FOLD
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-pushfold">
+  <div class="tip">
+    <div class="tip-icon">💡</div>
+    <div class="tip-text">Choisis ton <strong>stack en BB</strong> et ta <strong>position</strong>. La table Nash te dit si tu peux pousher ou doit folder. <strong>Vert = push, Orange = marginal, Gris = fold.</strong></div>
   </div>
-  <button id="rando-start" onclick="calcRando()">⚡ CALCULER ITINÉRAIRE</button>
-  <div id="rando-route"></div>
+
+  <div class="card" style="text-align:center;margin-bottom:14px">
+    <div class="t-label" style="margin-bottom:8px">Mon stack</div>
+    <div class="t-display t-cyan" id="pf_bb_display" style="font-size:48px;line-height:1">10 BB</div>
+    <input type="range" id="pf_slider" min="1" max="25" value="10" style="margin:12px 0" oninput="pf_update()">
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted)"><span>1 BB</span><span>25 BB</span></div>
+  </div>
+
+  <div class="t-label section-title">Position</div>
+  <div class="pos-grid" id="pf_pos_grid" style="margin-bottom:14px">
+    <div class="pos-btn" onclick="setPfPos('UTG',this)">UTG</div>
+    <div class="pos-btn" onclick="setPfPos('MP',this)">MP</div>
+    <div class="pos-btn" onclick="setPfPos('CO',this)">CO</div>
+    <div class="pos-btn active" onclick="setPfPos('BTN',this)">BTN</div>
+    <div class="pos-btn" onclick="setPfPos('SB',this)">SB</div>
+    <div class="pos-btn" onclick="setPfPos('BB',this)">BB</div>
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:8px">
+    <div class="badge green">■ Push Nash EV+</div>
+    <div class="badge amber">■ Marginal ±2BB</div>
+    <div class="badge">■ Fold</div>
+  </div>
+
+  <div class="pf-matrix" id="pf_matrix"></div>
+
+  <div class="card" id="pf_detail" style="margin-top:10px;display:none">
+    <div class="card-title" id="pf_detail_title"></div>
+    <div class="card-body" id="pf_detail_body"></div>
+  </div>
 </div>
 
-<!-- STATS PANEL -->
-<div id="stats-panel">
-  <div id="stats-hd">
-    <div id="stats-title">📊 STATS PAR ARRONDISSEMENT</div>
-    <button id="stats-close" onclick="hideStats()">✕ FERMER</button>
+<!-- ══════════════════════════════════════════
+     SCREEN 3 : SESSION (stats + log)
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-stats">
+
+  <!-- Session control -->
+  <div class="card" style="margin-bottom:14px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <div>
+        <div class="t-label" style="margin-bottom:4px">Session en cours</div>
+        <div class="t-display" id="sess_timer" style="font-size:30px;color:var(--muted2)">00:00:00</div>
+      </div>
+      <div style="display:flex;gap:7px">
+        <button class="btn btn-green btn-sm" id="sess_toggle" onclick="toggleSession()">START</button>
+        <button class="btn btn-ghost btn-sm" onclick="endSession()">END</button>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field"><label>Buy-in (€)</label><input type="number" id="s_buyin" value="200" oninput="updateStats()"></div>
+      <div class="field"><label>Valeur BB (€)</label><input type="number" id="s_bbval" value="2" step="0.5" oninput="updateStats()"></div>
+    </div>
   </div>
-  <div id="stats-body">
-    <div class="stats-global" id="stats-global"></div>
-    <div id="arr-grid"></div>
+
+  <!-- Profit -->
+  <div style="text-align:center;padding:16px;background:var(--s1);border:1px solid var(--border);border-radius:var(--r);margin-bottom:14px">
+    <div class="t-label" style="margin-bottom:8px">Profit session</div>
+    <div class="t-display" id="profit_bb" style="font-size:44px;color:var(--muted2)">0 BB</div>
+    <div id="profit_eur" style="font-size:13px;color:var(--muted2);margin-top:4px">≈ 0 €</div>
+  </div>
+
+  <!-- Quick stats -->
+  <div class="grid3" style="margin-bottom:14px">
+    <div class="stat"><div class="stat-val" id="s_hands">0</div><div class="stat-lbl">MAINS</div></div>
+    <div class="stat"><div class="stat-val t-green" id="s_wr">—</div><div class="stat-lbl">WIN RATE</div></div>
+    <div class="stat"><div class="stat-val t-amber" id="s_streak">0</div><div class="stat-lbl">STREAK</div></div>
+  </div>
+
+  <!-- Log a hand -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title" style="margin-bottom:12px">Logger une main</div>
+    <div class="card-row" style="margin-bottom:10px">
+      <div class="cslot" id="log_h1" onclick="openPicker('log_h1')"><span class="cslot-placeholder">+</span></div>
+      <div class="cslot" id="log_h2" onclick="openPicker('log_h2')"><span class="cslot-placeholder">+</span></div>
+    </div>
+    <div class="grid2" style="margin-bottom:8px">
+      <div class="field"><label>Résultat (BB)</label><input type="number" id="log_res" placeholder="ex: +12 ou -8" step="0.5"></div>
+      <div class="field"><label>Street finale</label>
+        <select id="log_street"><option>Preflop</option><option>Flop</option><option>Turn</option><option>River</option></select>
+      </div>
+    </div>
+    <div class="field" style="margin-bottom:10px"><label>Note rapide</label><textarea id="log_note" placeholder="Villain a bluffé la rivière..."></textarea></div>
+    <button class="btn btn-green" style="padding:11px;font-size:13px" onclick="logHand()">AJOUTER</button>
+  </div>
+
+  <!-- Hand history -->
+  <div class="t-label section-title">Historique</div>
+  <div id="hand_log" style="margin-bottom:14px">
+    <div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">Aucune main loggée</div>
+  </div>
+
+  <button class="btn btn-ghost" onclick="if(confirm('Effacer toute la session?')){hands=[];updateStats();renderLog();}">Effacer session</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 4 : TOURNOI (blind clock + ICM)
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-tourney">
+
+  <!-- Tip -->
+  <div class="tip">
+    <div class="tip-icon">⏱</div>
+    <div class="tip-text"><strong>Blind clock</strong> avec timer live. En bas, l'<strong>ICM Ladder</strong> te montre combien de chips tu dois viser par rang de finish.</div>
+  </div>
+
+  <!-- Blind Clock -->
+  <div class="blind-clock">
+    <div class="t-label" style="margin-bottom:4px">NIVEAU <span id="bc_num">1</span></div>
+    <div class="blind-level-display" id="bc_blinds">25 / 50</div>
+    <div class="blind-time" id="bc_time">20:00</div>
+    <div style="font-size:11px;color:var(--muted2);margin-top:4px" id="bc_next_lv">→ Prochain : 50 / 100</div>
+    <div class="blind-clock-controls">
+      <button class="clock-btn" onclick="bcPrev()">◀</button>
+      <button class="clock-btn primary" id="bc_playbtn" onclick="bcToggle()">▶ START</button>
+      <button class="clock-btn" onclick="bcNext()">▶▶</button>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-bottom:14px">
+    <div class="field"><label>Niveau actuel</label><input type="number" id="bc_lvl_in" value="1" min="1" oninput="bcGoLevel(parseInt(this.value)-1)"></div>
+    <div class="field"><label>Durée (minutes)</label><input type="number" id="bc_dur" value="20" min="1" oninput="bcReset()"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ICM Ladder -->
+  <div class="t-label section-title">ICM Ladder — Prizes par rang</div>
+  <div class="grid2" style="margin-bottom:10px">
+    <div class="field"><label>Prize pool (€)</label><input type="number" id="ldr_prize" value="5000" oninput="buildLadder()"></div>
+    <div class="field"><label>Mon stack (chips)</label><input type="number" id="ldr_mystack" value="8000" oninput="buildLadder()"></div>
+    <div class="field"><label>Total chips en jeu</label><input type="number" id="ldr_totalchips" value="100000" oninput="buildLadder()"></div>
+    <div class="field"><label>Joueurs restants</label><input type="number" id="ldr_remain" value="20" oninput="buildLadder()"></div>
+  </div>
+  <div id="ladder_list" style="margin-bottom:14px"></div>
+
+  <div class="divider"></div>
+
+  <!-- Rebuy EV -->
+  <div class="t-label section-title">Rebuy — Est-ce rentable ?</div>
+  <div class="grid2" style="margin-bottom:10px">
+    <div class="field"><label>Coût rebuy (€)</label><input type="number" id="rb_cost" value="100"></div>
+    <div class="field"><label>Stack rebuy (chips)</label><input type="number" id="rb_stack" value="10000"></div>
+    <div class="field"><label>Avg stack (chips)</label><input type="number" id="rb_avg" value="15000"></div>
+    <div class="field"><label>Prize pool (€)</label><input type="number" id="rb_prize" value="5000"></div>
+    <div class="field"><label>Joueurs restants</label><input type="number" id="rb_remain" value="40"></div>
+    <div class="field"><label>Places payées</label><input type="number" id="rb_itm" value="15"></div>
+  </div>
+  <button class="btn btn-amber" onclick="calcRebuy()">CALCULER EV REBUY</button>
+  <div id="rb_result" style="margin-top:10px"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SCREEN 5 : READS (villain tracker)
+══════════════════════════════════════════ -->
+<div class="screen" id="screen-reads">
+  <div class="tip">
+    <div class="tip-icon">👁</div>
+    <div class="tip-text">Note les <strong>stats et tendances</strong> de chaque adversaire. L'app génère automatiquement les <strong>exploits à appliquer</strong> contre eux.</div>
+  </div>
+
+  <button class="btn btn-purple" style="margin-bottom:14px" onclick="openVillainForm(-1)">+ Nouveau profil villain</button>
+
+  <div id="villain_list"></div>
+</div>
+
+<!-- Villain form modal -->
+<div class="modal-bg" id="villain_modal">
+  <div class="modal-sheet" style="max-height:90vh;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div class="t-display" style="font-size:18px" id="vform_title">Nouveau villain</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeVillainForm()">✕</button>
+    </div>
+
+    <div class="field" style="margin-bottom:12px">
+      <label>Nom / Description</label>
+      <input type="text" id="vf_name" placeholder="Ex: Seat 3 — bonnet rouge">
+    </div>
+
+    <div class="t-label section-title">Type de joueur</div>
+    <div class="pills" id="vf_profile_pills">
+      <div class="pill" onclick="selectVP('fish',this)">🐟 Fish</div>
+      <div class="pill" onclick="selectVP('lag',this)">🔥 LAG</div>
+      <div class="pill" onclick="selectVP('tag',this)">🎯 TAG</div>
+      <div class="pill" onclick="selectVP('nit',this)">🧊 Nit</div>
+      <div class="pill" onclick="selectVP('maniac',this)">💣 Maniac</div>
+      <div class="pill" onclick="selectVP('reg',this)">♟ Reg</div>
+    </div>
+
+    <div class="t-label section-title">Stats observées</div>
+    <div class="slider-row">
+      <div class="slider-label">VPIP <span id="vf_vpip_v">28%</span></div>
+      <input type="range" id="vf_vpip" min="5" max="85" value="28" oninput="document.getElementById('vf_vpip_v').textContent=this.value+'%'">
+    </div>
+    <div class="slider-row">
+      <div class="slider-label">PFR <span id="vf_pfr_v">18%</span></div>
+      <input type="range" id="vf_pfr" min="0" max="70" value="18" oninput="document.getElementById('vf_pfr_v').textContent=this.value+'%'">
+    </div>
+    <div class="slider-row">
+      <div class="slider-label">3-Bet % <span id="vf_3b_v">6%</span></div>
+      <input type="range" id="vf_3b" min="0" max="30" value="6" oninput="document.getElementById('vf_3b_v').textContent=this.value+'%'">
+    </div>
+    <div class="slider-row">
+      <div class="slider-label">Fold to C-Bet <span id="vf_fcb_v">55%</span></div>
+      <input type="range" id="vf_fcb" min="0" max="100" value="55" oninput="document.getElementById('vf_fcb_v').textContent=this.value+'%'">
+    </div>
+
+    <div class="t-label section-title">Tendances (sélectionne ce que tu observes)</div>
+    <div class="pills" id="vf_tendencies" style="margin-bottom:12px">
+      <div class="pill" onclick="this.classList.toggle('active')">Limp souvent</div>
+      <div class="pill" onclick="this.classList.toggle('active')">Overbet bluff</div>
+      <div class="pill" onclick="this.classList.toggle('active')">Never fold pair</div>
+      <div class="pill" onclick="this.classList.toggle('active')">Check-raise draw</div>
+      <div class="pill" onclick="this.classList.toggle('active')">Tilt susceptible</div>
+      <div class="pill" onclick="this.classList.toggle('active')">Showdown hunter</div>
+      <div class="pill" onclick="this.classList.toggle('active')">Squeeze light</div>
+      <div class="pill" onclick="this.classList.toggle('active')">Slow-play monsters</div>
+    </div>
+
+    <div class="field" style="margin-bottom:14px">
+      <label>Notes libres</label>
+      <textarea id="vf_notes" placeholder="Ex: 3-bette très large BTN vs CO, cold-call ATC..."></textarea>
+    </div>
+
+    <button class="btn btn-purple" onclick="saveVillain()">SAUVEGARDER</button>
   </div>
 </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+<!-- ══════════════════════════════════════════
+     CARD PICKER MODAL
+══════════════════════════════════════════ -->
+<div class="modal-bg" id="picker_modal">
+  <div class="modal-sheet">
+    <div class="t-label" style="text-align:center;margin-bottom:14px">Choisir une carte</div>
+    <div class="suit-row">
+      <div class="suit-btn active" onclick="setSuit('♠')">♠</div>
+      <div class="suit-btn red active" onclick="setSuit('♥')">♥</div>
+      <div class="suit-btn red" onclick="setSuit('♦')">♦</div>
+      <div class="suit-btn" onclick="setSuit('♣')">♣</div>
+    </div>
+    <div class="rank-grid" id="rank_grid"></div>
+    <button class="btn btn-ghost" style="margin-top:10px;padding:11px" onclick="closePicker()">Annuler</button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <div class="nav-item active" id="nav-advisor"  onclick="goScreen('advisor')">  <div class="icon">🃏</div><div class="label">ADVISOR</div></div>
+  <div class="nav-item"        id="nav-pushfold" onclick="goScreen('pushfold')"> <div class="icon">⚡</div><div class="label">PUSH/FOLD</div></div>
+  <div class="nav-item"        id="nav-stats"    onclick="goScreen('stats')">    <div class="icon">📊</div><div class="label">SESSION</div></div>
+  <div class="nav-item"        id="nav-tourney"  onclick="goScreen('tourney')">  <div class="icon">🏆</div><div class="label">TOURNOI</div></div>
+  <div class="nav-item"        id="nav-reads"    onclick="goScreen('reads')">    <div class="icon">👁</div><div class="label">READS</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
 <script>
-const C={OK:'#00ff88',damaged:'#ffaa00',destroyed:'#ff3355',hidden:'#8888ff'};
-let PROX=150;
-let D=[],af=new Set(['OK','damaged','destroyed','hidden']),fl=new Set(JSON.parse(localStorage.getItem('piv')||'[]')),mk={};
-let gpsOn=false,gpsWatch=null,posMk=null,proxCircle=null,myLat=null,myLng=null,lastAlerted=new Set();
-let alertInv=null,routeLayer=null,radarOpen=false,randoOpen=false;
+'use strict';
 
-// ── INIT MAP ──────────────────────────────────────────────────────────
-const map=L.map('map',{center:[48.8566,2.3522],zoom:14});
-L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'©OSM',maxZoom:19}).addTo(map);
-const cg=L.markerClusterGroup({
-  maxClusterRadius:40,showCoverageOnHover:false,spiderfyOnMaxZoom:true,
-  iconCreateFunction:c=>L.divIcon({
-    html:`<div style="background:rgba(0,255,204,.08);border:1px solid rgba(0,255,204,.2);border-radius:3px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-family:Orbitron,monospace;font-size:9px;color:#00ffcc;font-weight:700;">${c.getChildCount()}</div>`,
-    className:'',iconSize:[28,28]
-  })
-});
-map.addLayer(cg);
+// ── CONSTANTS ──────────────────────────
+const RANKS = ['A','K','Q','J','T','9','8','7','6','5','4','3','2'];
+const SUITS = ['♠','♥','♦','♣'];
+const RED_SUITS = new Set(['♥','♦']);
+const RANK_VAL = {A:14,K:13,Q:12,J:11,T:10,9:9,8:8,7:7,6:6,5:5,4:4,3:3,2:2};
 
-// ── SPLASH + LOAD DATA ─────────────────────────────────────────────────
-function prog(p,msg){
-  document.getElementById('splash-bar').style.width=p+'%';
-  if(msg)document.getElementById('splash-msg').textContent=msg;
+// ── STATE ──────────────────────────────
+const state = {
+  cards: {},          // slotId → {rank, suit}
+  street: 'preflop',
+  position: 'BTN',
+  mode: 'cash',       // 'cash' | 'tourney'
+  villainProfile: 'unknown',
+  pfPos: 'BTN',
+  // session
+  sessionOn: false,
+  sessionStart: null,
+  sessionTimer: null,
+  hands: [],
+  lastAnalysis: null,
+  // villains
+  villains: [],
+  editingVillain: -1,
+  selectedVillainProfile: null,
+  // blind clock
+  bcLevel: 0,
+  bcTimeLeft: 0,
+  bcRunning: false,
+  bcInterval: null,
+};
+
+const BC_LEVELS = [
+  {sb:25,bb:50},{sb:50,bb:100},{sb:75,bb:150},{sb:100,bb:200},
+  {sb:150,bb:300},{sb:200,bb:400},{sb:300,bb:600},{sb:400,bb:800},
+  {sb:500,bb:1000},{sb:800,bb:1600},{sb:1000,bb:2000},{sb:1500,bb:3000},
+  {sb:2000,bb:4000},{sb:3000,bb:6000},{sb:5000,bb:10000},
+];
+
+// ── PERSISTENCE ────────────────────────
+function save() {
+  try { localStorage.setItem('aceiq4', JSON.stringify({ hands: state.hands, villains: state.villains })); } catch(e) {}
+}
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem('aceiq4') || '{}');
+    state.hands = d.hands || [];
+    state.villains = d.villains || [];
+  } catch(e) {}
 }
 
-async function loadData(){
-  prog(20,'CHARGEMENT');
-  try{
-    const r=await fetch('./data.json');
-    D=await r.json();
-    prog(70,'INIT CARTE');
-    initMarkers();
-    prog(100,'PRÊT');
-    setTimeout(()=>{
-      const sp=document.getElementById('splash');
-      sp.style.opacity='0';
-      setTimeout(()=>sp.style.display='none',400);
-    },300);
-  }catch(e){
-    document.getElementById('splash-msg').textContent='ERREUR CHARGEMENT';
+// ── NAVIGATION ─────────────────────────
+function goScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'pushfold') pf_update();
+  if (name === 'stats')   { renderLog(); updateStats(); }
+  if (name === 'tourney') { buildLadder(); bcRender(); }
+  if (name === 'reads')   renderVillainList();
+}
+function goStats() { goScreen('stats'); }
+
+// ── CARD PICKER ────────────────────────
+let pickerTarget = null, pickerSuit = '♠';
+
+function openPicker(id) {
+  pickerTarget = id;
+  pickerSuit = '♠';
+  updateSuitBtns();
+  renderRankGrid();
+  document.getElementById('picker_modal').classList.add('open');
+}
+function closePicker() { document.getElementById('picker_modal').classList.remove('open'); pickerTarget = null; }
+function setSuit(s) { pickerSuit = s; updateSuitBtns(); renderRankGrid(); }
+function updateSuitBtns() {
+  document.querySelectorAll('.suit-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.trim() === pickerSuit);
+  });
+}
+function renderRankGrid() {
+  const used = new Set(Object.values(state.cards).filter(Boolean).map(c => c.rank + c.suit));
+  const cur = state.cards[pickerTarget];
+  if (cur) used.delete(cur.rank + cur.suit);
+  const isRed = RED_SUITS.has(pickerSuit);
+  document.getElementById('rank_grid').innerHTML = RANKS.map(r => {
+    const key = r + pickerSuit;
+    const isUsed = used.has(key);
+    return `<div class="rank-btn${isUsed ? ' used' : ''}${isRed ? ' red' : ''}" onclick="${isUsed ? '' : `pickCard('${r}','${pickerSuit}')`}">${r}</div>`;
+  }).join('');
+}
+function pickCard(rank, suit) {
+  state.cards[pickerTarget] = { rank, suit };
+  renderSlot(pickerTarget);
+  closePicker();
+}
+function renderSlot(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const card = state.cards[id];
+  if (!card) {
+    const isVil = id === 'v1' || id === 'v2';
+    el.className = 'cslot';
+    el.innerHTML = `<span class="${isVil ? '' : 'cslot-'}placeholder" style="color:var(--muted);font-size:${isVil ? 18 : 20}px">${isVil ? '?' : '+'}</span>`;
+    return;
+  }
+  const isRed = RED_SUITS.has(card.suit);
+  el.className = `cslot filled ${isRed ? 'red-card' : 'black-card'}`;
+  el.innerHTML = `<span class="rank">${card.rank}</span><span class="suit">${card.suit}</span><span class="del" onclick="delCard('${id}',event)">✕</span>`;
+}
+function delCard(id, e) { e.stopPropagation(); state.cards[id] = null; renderSlot(id); }
+
+// ── ADVISOR CONTROLS ───────────────────
+function setMode(m, el) {
+  state.mode = m;
+  document.querySelectorAll('#screen-advisor .pills:first-of-type .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ctx_cash').style.display   = m === 'cash'    ? 'block' : 'none';
+  document.getElementById('ctx_tourney').style.display = m === 'tourney' ? 'block' : 'none';
+  document.getElementById('analyze_btn').className = 'btn ' + (m === 'cash' ? 'btn-green' : 'btn-amber');
+}
+function setStreet(s, el) {
+  state.street = s;
+  document.querySelectorAll('.street-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  const bs = document.getElementById('board_section');
+  bs.style.display = s === 'preflop' ? 'none' : 'block';
+  document.getElementById('b4').style.display = (s === 'turn'  || s === 'river') ? 'flex' : 'none';
+  document.getElementById('b5').style.display = s === 'river' ? 'flex' : 'none';
+}
+function setPos(p, el) {
+  state.position = p;
+  document.querySelectorAll('#ctx_cash ~ .pos-grid .pos-btn, #ctx_tourney ~ .pos-grid .pos-btn, .pos-grid + .pos-grid .pos-btn').forEach(b => b.classList.remove('active'));
+  // target the one in advisor screen
+  document.querySelectorAll('#screen-advisor .pos-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+}
+function resetResults() { document.getElementById('results').style.display = 'none'; }
+
+function downloadApp() {
+  const html = document.documentElement.outerHTML;
+  const blob = new Blob(['<!DOCTYPE html>\n' + html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'aceiq-poker-advisor.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ── TOURNEY LIVE INDICATORS ────────────
+function updateTourneyLive() {
+  const bb = parseFloat(document.getElementById('t_stack').value) || 25;
+  const remain = parseInt(document.getElementById('t_remain').value) || 18;
+  const itm = parseInt(document.getElementById('t_itm').value) || 9;
+  const lbl = document.getElementById('t_stack_label');
+  const mode = document.getElementById('t_stack_mode');
+  lbl.textContent = bb + ' BB';
+  if      (bb <= 5)  { lbl.style.color = 'var(--red)';   mode.textContent = 'Ship it preflop seulement'; }
+  else if (bb <= 13) { lbl.style.color = 'var(--red)';   mode.textContent = 'Push/Fold strict'; }
+  else if (bb <= 25) { lbl.style.color = 'var(--amber)'; mode.textContent = 'Resteal + push marginal'; }
+  else if (bb <= 40) { lbl.style.color = 'var(--green)'; mode.textContent = 'GTO postflop standard'; }
+  else               { lbl.style.color = 'var(--cyan)';  mode.textContent = 'Max pression, steal wide'; }
+  const ratio = (remain - itm) / Math.max(itm, 1);
+  let pct, col, txt;
+  if      (ratio > 3)   { pct = 5;  col = 'var(--blue)';  txt = 'Deep — jeu normal'; }
+  else if (ratio > 2)   { pct = 20; col = 'var(--blue)';  txt = 'Pression faible'; }
+  else if (ratio > 1)   { pct = 45; col = 'var(--amber)'; txt = 'Modéré — watch out'; }
+  else if (ratio > 0.5) { pct = 72; col = 'var(--amber)'; txt = 'Near bubble — tighten'; }
+  else if (ratio > 0.1) { pct = 88; col = 'var(--red)';   txt = 'Bubble critique'; }
+  else                  { pct = 100; col = 'var(--red)';  txt = 'ON THE BUBBLE'; }
+  document.getElementById('t_bubble_bar').style.cssText = `width:${pct}%;background:${col}`;
+  document.getElementById('t_bubble_txt').style.color = col;
+  document.getElementById('t_bubble_txt').textContent = txt;
+}
+
+// ── POKER MATH ────────────────────────
+function evalHand(hole, board) {
+  const all = [...hole, ...board].filter(Boolean);
+  if (all.length < 2) return { name: '—', str: 0 };
+  if (all.length < 5) {
+    const [r1, r2] = hole.map(c => RANK_VAL[c.rank]);
+    const suited = hole[0].suit === hole[1].suit;
+    if (r1 === r2) return { name: `Paire de ${hole[0].rank}`, str: .5 + r1/100 };
+    const hi = Math.max(r1,r2), lo = Math.min(r1,r2), gap = hi - lo;
+    let s = hi >= 13 && lo >= 11 ? (suited ? .83 : .73)
+          : hi === 14             ? (suited ? .63 : .55)
+          : hi >= 12 && lo >= 10 ? (suited ? .60 : .51)
+          : suited && gap <= 2   ? .45
+          : .30 + hi/100;
+    return { name: suited ? `${hole[0].rank}${hole[1].rank}s` : `${hole[0].rank}${hole[1].rank}o`, str: s };
+  }
+  const nums = all.map(c => RANK_VAL[c.rank]);
+  const sArr = all.map(c => c.suit);
+  const sc = {}, rc = {};
+  sArr.forEach(s => sc[s] = (sc[s]||0)+1);
+  nums.forEach(n => rc[n] = (rc[n]||0)+1);
+  const fSuit = Object.keys(sc).find(s => sc[s] >= 5);
+  const counts = Object.values(rc).sort((a,b) => b-a);
+  const uniq = [...new Set(nums)].sort((a,b) => b-a);
+  let hasSt = false;
+  for (let i = 0; i <= uniq.length-5; i++) if (uniq[i]-uniq[i+4]===4) { hasSt=true; break; }
+  if (uniq.includes(14)&&uniq.includes(2)&&uniq.includes(3)&&uniq.includes(4)&&uniq.includes(5)) hasSt=true;
+  if (fSuit && hasSt) {
+    const fn = all.filter(c=>c.suit===fSuit).map(c=>RANK_VAL[c.rank]).sort((a,b)=>b-a);
+    for (let i=0; i<=fn.length-5; i++) if (fn[i]-fn[i+4]===4) return fn[i]===14?{name:'Royal Flush',str:1}:{name:'Straight Flush',str:.97};
+  }
+  if (counts[0]===4) return {name:'Carré',str:.94};
+  if (counts[0]===3&&counts[1]>=2) return {name:'Full House',str:.90};
+  if (fSuit) return {name:'Couleur',str:.82};
+  if (hasSt) return {name:'Suite',str:.72};
+  if (counts[0]===3) return {name:'Brelan',str:.58};
+  if (counts[0]===2&&counts[1]===2) return {name:'Double Paire',str:.42};
+  if (counts[0]===2) return {name:'Paire',str:.28};
+  return {name:'Carte haute',str:.12};
+}
+
+// ── RANGE ENGINE ──────────────────────
+// Toutes les 169 classes de mains, triées par force descendante
+// Format: [rank1_idx, rank2_idx, suited] → strength score
+const HAND_STRENGTH_ORDER = (() => {
+  const hands = [];
+  for (let i=0; i<13; i++) {
+    for (let j=i; j<13; j++) {
+      const r1 = 14-i, r2 = 14-j;
+      const paired = i===j;
+      let score;
+      if (paired) {
+        score = r1 * 10 + 100;
+      } else {
+        // suited
+        const hi=r1, lo=r2, gap=hi-lo;
+        const baseS = hi*2 + lo - gap*1.5;
+        hands.push({ i, j, suited:true,  label: RANKS[i]+RANKS[j]+'s', score: baseS + 3, combos: 4 });
+        // offsuit
+        hands.push({ i, j, suited:false, label: RANKS[j]+RANKS[i]+'o', score: baseS,     combos: 12 });
+        continue;
+      }
+      hands.push({ i, j:i, suited:false, label: RANKS[i]+RANKS[i], score, combos: 6, paired:true });
+    }
+  }
+  return hands.sort((a,b) => b.score - a.score);
+})();
+
+// Total combos in full deck: 1326
+const TOTAL_COMBOS = 1326;
+
+// State: set of active hand keys "ij_s" or "ij_o"
+let villainRange = new Set(); // keys of hands IN the range
+let villainRangePct = 100;
+
+function handKey(i, j, suited) {
+  const [a,b] = i<=j ? [i,j] : [j,i];
+  return `${a}_${b}_${suited?'s':'o'}`;
+}
+
+function initRange() {
+  // Start with 100% = all hands
+  villainRange = new Set(HAND_STRENGTH_ORDER.map(h => handKey(h.i, h.j, h.suited)));
+  renderRangeMatrix();
+  updateRangeInfo();
+}
+
+function applyRangePreset(pct, label) {
+  villainRangePct = pct;
+  document.getElementById('range_slider').value = pct;
+  document.getElementById('range_pct_val').textContent = pct + '%';
+  // Fill top X% of hands
+  const target = Math.round(TOTAL_COMBOS * pct / 100);
+  let count = 0;
+  villainRange = new Set();
+  for (const h of HAND_STRENGTH_ORDER) {
+    if (count >= target) break;
+    villainRange.add(handKey(h.i, h.j, h.suited));
+    count += h.combos;
+  }
+  renderRangeMatrix();
+  updateRangeInfo();
+}
+
+function toggleRangeCell(i, j) {
+  // Determine if this is suited (upper triangle) or paired (diagonal) or offsuit (lower)
+  const suited = i < j;
+  const paired = i === j;
+  const [ri, rj] = paired ? [i,i] : suited ? [i,j] : [j,i];
+  const key = handKey(ri, rj, suited && !paired);
+  if (villainRange.has(key)) villainRange.delete(key);
+  else villainRange.add(key);
+  renderRangeMatrix();
+  updateRangeInfo();
+}
+
+function renderRangeMatrix() {
+  const grid = document.getElementById('range_matrix');
+  if (!grid) return;
+  let html = '';
+  for (let i=0; i<13; i++) {
+    for (let j=0; j<13; j++) {
+      const suited = i < j;
+      const paired = i === j;
+      const [ri, rj] = paired ? [i,i] : suited ? [i,j] : [j,i];
+      const key = handKey(ri, rj, suited && !paired);
+      const inRange = villainRange.has(key);
+      const r1=RANKS[i], r2=RANKS[j];
+      const label = paired ? r1+r1 : suited ? r1+r2+'s' : r2+r1+'o';
+      html += `<div class="rc-cell ${inRange?'in':'out'}" onclick="toggleRangeCell(${i},${j})">${label.length<=3?label:label.slice(0,2)}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+}
+
+function updateRangeInfo() {
+  // Count combos
+  let combos = 0;
+  for (const h of HAND_STRENGTH_ORDER) {
+    if (villainRange.has(handKey(h.i, h.j, h.suited))) combos += h.combos;
+  }
+  const pct = (combos/TOTAL_COMBOS*100).toFixed(1);
+  document.getElementById('range_pct_val').textContent = pct + '%';
+  document.getElementById('range_slider').value = Math.round(pct);
+  const el = document.getElementById('range_combos_info');
+  if (el) el.textContent = `${combos} combos · ${pct}% des mains`;
+}
+
+// Expand a range hand into specific card combos (filtering out blocked cards)
+function expandRangeToCards(knownSet) {
+  const combos = [];
+  for (const h of HAND_STRENGTH_ORDER) {
+    if (!villainRange.has(handKey(h.i, h.j, h.suited))) continue;
+    const r1 = RANKS[h.i], r2 = RANKS[h.j];
+    if (h.paired) {
+      // 6 combos: C(4,2) suit pairs
+      const suits = SUITS.filter(s => !knownSet.has(r1+s));
+      for (let a=0; a<suits.length; a++)
+        for (let b=a+1; b<suits.length; b++)
+          combos.push([{rank:r1,suit:suits[a]},{rank:r2,suit:suits[b]}]);
+    } else if (h.suited) {
+      // 4 combos: same suit
+      for (const s of SUITS) {
+        if (!knownSet.has(r1+s) && !knownSet.has(r2+s))
+          combos.push([{rank:r1,suit:s},{rank:r2,suit:s}]);
+      }
+    } else {
+      // 12 combos: different suits
+      for (const s1 of SUITS) for (const s2 of SUITS) {
+        if (s1===s2) continue;
+        if (!knownSet.has(r1+s1) && !knownSet.has(r2+s2))
+          combos.push([{rank:r1,suit:s1},{rank:r2,suit:s2}]);
+      }
+    }
+  }
+  return combos;
+}
+
+// ── MONTE CARLO (vs range) ─────────────
+function monteCarlo(hole, board, npl, iter=2500) {
+  const knownSet = new Set([...hole,...board].filter(Boolean).map(c=>c.rank+c.suit));
+  const deck = RANKS.flatMap(r => SUITS.map(s => ({rank:r,suit:s}))).filter(c => !knownSet.has(c.rank+c.suit));
+
+  // Get valid villain combos from range
+  const rangeCombos = expandRangeToCards(knownSet);
+  const useRange = rangeCombos.length > 0;
+
+  let wins = 0;
+  const needed = 5 - board.filter(Boolean).length;
+
+  for (let i = 0; i < iter; i++) {
+    // Pick a villain hand: from range if available, else random
+    let vilHole;
+    if (useRange) {
+      vilHole = rangeCombos[Math.floor(Math.random() * rangeCombos.length)];
+      // Skip if villain cards already used
+      if (knownSet.has(vilHole[0].rank+vilHole[0].suit) || knownSet.has(vilHole[1].rank+vilHole[1].suit)) continue;
+    }
+
+    // Build available deck excluding villain hole if range mode
+    const usedThisIter = new Set(knownSet);
+    if (vilHole) { usedThisIter.add(vilHole[0].rank+vilHole[0].suit); usedThisIter.add(vilHole[1].rank+vilHole[1].suit); }
+
+    const availDeck = deck.filter(c => !usedThisIter.has(c.rank+c.suit));
+    const sh = availDeck.sort(() => Math.random()-.5);
+    let idx = 0;
+
+    // Complete board
+    const sb = [...board.filter(Boolean)];
+    for (let j=0; j<needed; j++) {
+      if (idx >= sh.length) break;
+      sb.push(sh[idx++]);
+    }
+    if (sb.length < 5) continue;
+
+    const myStr = evalHand(hole, sb).str + Math.random()*.001;
+
+    // Villain 1 (from range or random)
+    const vil1 = vilHole || [sh[idx++], sh[idx++]];
+    if (!vilHole) { idx += 0; } // already advanced
+    const vil1Str = evalHand(vilHole ? vilHole : vil1, sb).str + Math.random()*.001;
+    if (vil1Str >= myStr) continue;
+
+    // Extra villains (random)
+    let win = true;
+    for (let p=2; p<npl; p++) {
+      if (idx+1 >= sh.length) break;
+      if (evalHand([sh[idx++],sh[idx++]], sb).str + Math.random()*.001 >= myStr) { win=false; break; }
+    }
+    if (win) wins++;
+  }
+  return wins / iter;
+}
+
+function getOuts(hole, board) {
+  const b = board.filter(Boolean);
+  if (!b.length) return [];
+  const all = [...hole,...b].filter(Boolean);
+  const outs = [];
+  const sc = {};
+  all.forEach(c => sc[c.suit] = (sc[c.suit]||0)+1);
+  if (Object.values(sc).some(v=>v===4)) outs.push({name:'Flush draw',count:9});
+  const nums = [...new Set(all.map(c=>RANK_VAL[c.rank]))].sort((a,b)=>a-b);
+  for (let i=0; i<nums.length-3; i++) if (nums[i+3]-nums[i]===3) { outs.push({name:'Suite ouverte',count:8}); break; }
+  for (let i=0; i<nums.length-3; i++) if (nums[i+3]-nums[i]===4) { outs.push({name:'Gutshot',count:4}); break; }
+  const maxB = Math.max(...b.map(c=>RANK_VAL[c.rank]));
+  const oc = hole.filter(c=>RANK_VAL[c.rank]>maxB);
+  if (oc.length===2) outs.push({name:'Deux overcards',count:6});
+  else if (oc.length===1) outs.push({name:'Overcard',count:3});
+  return outs;
+}
+
+function gtoDecision(equity, potOdds, pot, stack, pos, vbet, street, icmMod=0) {
+  const posBonus = ['BTN','CO'].includes(pos) ? .04 : ['UTG','MP'].includes(pos) ? -.03 : 0;
+  const ae = Math.min(1, equity + posBonus - icmMod);
+  let fold=0, call=0, raise=0, size=0, reason='';
+  if (vbet > 0) {
+    const po = potOdds||0, m = ae - po;
+    if      (ae > po + .15) { raise=Math.min(.85,.5+m*2); call=1-raise; size=Math.round(vbet*(2.5+ae)); reason=`Équité ${(ae*100).toFixed(0)}% >> pot odds → value raise`; }
+    else if (ae > po - .05) { call=.7+m*2; raise=Math.max(0,.15-m); fold=Math.max(0,1-call-raise); size=Math.round(vbet*2.5); reason='Spot marginal — call défendable'; }
+    else                    { fold=Math.min(.9,1-ae*2); call=1-fold; reason=`EV négative — pot odds ${(po*100).toFixed(0)}% > équité ${(ae*100).toFixed(0)}%`; }
+  } else {
+    if      (ae > .65) { raise=.85; call=.1; fold=.05; size=Math.round(pot*(street==='preflop'?.8:.7)); reason='Main forte → bet pour value'; }
+    else if (ae > .45) { raise=.4+(['BTN','CO'].includes(pos)?.15:0); call=.45; fold=.15; size=Math.round(pot*.55); reason='Main médiane → mix bet/check'; }
+    else if (['BTN','CO'].includes(pos)) { raise=.35; call=.25; fold=.4; size=Math.round(pot*.45); reason='Main faible IP → steal viable'; }
+    else               { raise=.1; call=.2; fold=.7; size=Math.round(pot*.5); reason='Main faible OOP → check/fold'; }
+  }
+  const spr = stack/(pot||1);
+  if (spr < 3 && raise > .5) { reason += ` — SPR ${spr.toFixed(1)} court → jam`; size=stack; }
+  return { fold: Math.max(0,Math.min(1,fold)), call: Math.max(0,Math.min(1,call)), raise: Math.max(0,Math.min(1,raise)), size, reason, ae };
+}
+
+// ── VILLAIN EXPLOIT ────────────────────
+function getExploit(v) {
+  const tips = [];
+  if (v.vpip > 45 || v.profile==='fish')    tips.push('Fish : <strong>zéro bluff</strong>, value-bet thin sur 3 streets. Il call tout.');
+  if (v.vpip < 15 || v.profile==='nit')     tips.push('Nit : <strong>steal ses blinds</strong> systématiquement. Respecte ses 3-bets.');
+  if (v.pfr > 35  || v.profile==='maniac')  tips.push('Maniac : <strong>call down large</strong>, trap avec tes monsters.');
+  if (v.fcb > 70)  tips.push(`Fold to C-Bet ${v.fcb}% : <strong>c-bet quasi-systématique</strong>, il fold trop souvent.`);
+  if (v.fcb < 35)  tips.push(`Fold to C-Bet ${v.fcb}% : <strong>check plutôt que c-bet bluff</strong>, il call trop.`);
+  if (v.tendencies?.includes('Never fold pair'))  tips.push('<strong>Never fold pair</strong> : value max, bluffs inutiles.');
+  if (v.tendencies?.includes('Overbet bluff'))    tips.push('<strong>Overbet bluff</strong> : call ses overbets top pair+.');
+  if (v.tendencies?.includes('Tilt susceptible')) tips.push('<strong>Tilt susceptible</strong> : reste patient, les erreurs arrivent.');
+  return tips;
+}
+
+// ── RUN ANALYSIS ──────────────────────
+async function runAnalysis() {
+  const h1 = state.cards.h1, h2 = state.cards.h2;
+  if (!h1 || !h2) { alert('Sélectionne tes 2 cartes !'); return; }
+  const isTourney = state.mode === 'tourney';
+  const pot   = parseFloat(isTourney ? document.getElementById('t_pot').value   : document.getElementById('c_pot').value)   || 10;
+  const stack = parseFloat(isTourney ? document.getElementById('t_stack').value  : document.getElementById('c_stack').value) || 100;
+  const vbet  = parseFloat(isTourney ? document.getElementById('t_vbet').value   : document.getElementById('c_vbet').value)  || 0;
+  const npl   = parseInt(document.getElementById('c_npl').value) || 6;
+  const board = ['b1','b2','b3','b4','b5'].map(id=>state.cards[id]).filter(Boolean);
+
+  document.getElementById('analyze_btn').disabled = true;
+  document.getElementById('spin').classList.add('on');
+  document.getElementById('results').style.display = 'none';
+  await new Promise(r => setTimeout(r, 30));
+
+  const hole = [h1, h2];
+  const equity = monteCarlo(hole, board, npl);
+  const potOdds = vbet > 0 ? vbet/(pot+vbet) : null;
+  const handEval = evalHand(hole, board);
+  const outs = getOuts(hole, board);
+  const stLeft = state.street==='flop'?2 : state.street==='turn'?1 : 0;
+
+  let icmMod = 0;
+  let bubbleTxt = '';
+  if (isTourney) {
+    const remain = parseInt(document.getElementById('t_remain').value)||18;
+    const itm    = parseInt(document.getElementById('t_itm').value)||9;
+    const ratio  = (remain-itm)/Math.max(itm,1);
+    icmMod = ratio<0.5?.12 : ratio<1?.08 : ratio<2?.04 : 0;
+    bubbleTxt = ratio<0.5 ? 'ON THE BUBBLE — évite tout all-in marginal.'
+              : ratio<1   ? 'Near bubble — tighten up significativement.'
+              : ratio<2   ? 'Légère pression ICM.'
+              : '';
+  }
+
+  const dec = gtoDecision(equity, potOdds, pot, stack, state.position, vbet, state.street, icmMod);
+  state.lastAnalysis = { hole, board, pot, vbet, stack, dec };
+
+  document.getElementById('spin').classList.remove('on');
+  document.getElementById('analyze_btn').disabled = false;
+  renderResults(dec, equity, potOdds, pot, vbet, stack, npl, handEval, outs, stLeft, isTourney, icmMod, bubbleTxt);
+}
+
+function renderResults(dec, equity, potOdds, pot, vbet, stack, npl, handEval, outs, stLeft, isTourney, icmMod, bubbleTxt) {
+  const actions = [
+    { type:'fold',  label:'FOLD',  freq:dec.fold,  detail:'Abandon' },
+    { type:'call',  label: vbet>0 ? `CALL ${vbet}BB` : 'CHECK', freq:dec.call,  detail: vbet>0 ? `Pot odds: ${potOdds ? (potOdds*100).toFixed(1)+'%' : '—'}` : 'Contrôle le pot' },
+    { type:'raise', label: dec.size>=stack ? 'ALL-IN' : vbet>0 ? `RAISE → ${dec.size}BB` : `BET ${dec.size}BB`, freq:dec.raise, detail:`Sizing: ${dec.size} BB` },
+  ].sort((a,b) => b.freq-a.freq);
+  const best = actions[0].type;
+
+  document.getElementById('res_actions').innerHTML = actions.map(a => `
+    <div class="action-card ${a.type}${a.type===best?' best':''}">
+      ${a.type===best ? '<div class="best-tag">★ OPTIMAL</div>' : ''}
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <div class="action-name">${a.label}</div>
+        <div class="t-display" style="font-size:20px;color:${a.type==='fold'?'var(--red)':a.type==='call'?'var(--amber)':'var(--green)'}">${(a.freq*100).toFixed(0)}%</div>
+      </div>
+      <div class="pbar" style="margin-bottom:8px"><div class="pbar-fill" style="width:${a.freq*100}%;background:${a.type==='fold'?'var(--red)':a.type==='call'?'var(--amber)':'var(--green)'}"></div></div>
+      <div class="t-muted" style="font-size:11px">${a.detail}</div>
+    </div>`).join('');
+
+  const spr = (stack/(pot||1)).toFixed(1);
+  const ev  = potOdds ? ((equity-potOdds)*(pot+vbet)).toFixed(1)+'BB' : '—';
+  // Count combos in villain range
+  let rangeCombos = 0;
+  for (const h of HAND_STRENGTH_ORDER) {
+    if (villainRange.has(handKey(h.i, h.j, h.suited))) rangeCombos += h.combos;
+  }
+  const rangePct = (rangeCombos/TOTAL_COMBOS*100).toFixed(0);
+  document.getElementById('res_stats').innerHTML = `
+    <div class="stat"><div class="stat-val ${equity>.5?'t-green':equity>.33?'t-amber':'t-red'}">${(equity*100).toFixed(1)}%</div><div class="stat-lbl">ÉQUITÉ VS RANGE</div></div>
+    <div class="stat"><div class="stat-val ${!potOdds?'t-blue':potOdds<equity?'t-green':'t-red'}">${potOdds?(potOdds*100).toFixed(1)+'%':'—'}</div><div class="stat-lbl">POT ODDS</div></div>
+    <div class="stat"><div class="stat-val t-blue">${spr}x</div><div class="stat-lbl">SPR</div></div>
+    <div class="stat"><div class="stat-val t-cyan">${rangePct}%</div><div class="stat-lbl">RANGE VILLAIN</div></div>`;
+
+  document.getElementById('res_strength').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div class="t-label">Force de main</div>
+      <div class="t-display t-purple" style="font-size:13px">${handEval.name}</div>
+    </div>
+    <div class="pbar" style="margin-bottom:8px"><div class="pbar-fill" style="width:${handEval.str*100}%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))"></div></div>
+    <div class="card-body">${dec.reason}</div>`;
+
+  let extras = '';
+  if (isTourney && bubbleTxt) extras += `<div class="card amber" style="margin-bottom:8px"><div class="card-title t-amber">ICM −${(icmMod*100).toFixed(0)}%</div><div class="card-body">${bubbleTxt}</div></div>`;
+  if (outs.length && stLeft) {
+    const tot = Math.min(outs.reduce((s,o)=>s+o.count,0),20);
+    const eq  = (tot*(stLeft===2?4:2)).toFixed(0);
+    extras += `<div class="card blue" style="margin-bottom:8px"><div class="card-title t-cyan">Draws — ~${eq}% équité</div><div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${outs.map(o=>`<span class="badge">${o.name}: ${o.count} outs</span>`).join('')}</div></div>`;
+  }
+  // Villain exploit note
+  const vProf = state.villains.find(v => v.profile === state.villainProfile) || (state.villainProfile !== 'unknown' ? {profile:state.villainProfile,vpip:state.villainProfile==='fish'?55:state.villainProfile==='nit'?12:28,pfr:18,fcb:55,tendencies:[]} : null);
+  if (vProf) {
+    const tips = getExploit(vProf);
+    if (tips.length) extras += `<div class="card amber" style="margin-bottom:8px"><div class="card-title t-amber">Exploit villain</div><div class="card-body">${tips.join('<br>')}</div></div>`;
+  }
+  document.getElementById('res_extras').innerHTML = extras;
+  document.getElementById('res_log_cta').style.display = state.sessionOn ? 'block' : 'none';
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── SESSION ────────────────────────────
+function toggleSession() {
+  if (!state.sessionOn) {
+    state.sessionOn = true;
+    state.sessionStart = Date.now();
+    state.sessionTimer = setInterval(tickTimer, 1000);
+    document.getElementById('sess_toggle').textContent = 'PAUSE';
+    document.getElementById('hdr_pill').textContent = '● ON';
+    document.getElementById('hdr_pill').classList.add('on');
+  } else {
+    state.sessionOn = false;
+    clearInterval(state.sessionTimer);
+    document.getElementById('sess_toggle').textContent = 'RESUME';
+    document.getElementById('hdr_pill').classList.remove('on');
   }
 }
+function endSession() {
+  if (!confirm('Terminer la session ?')) return;
+  state.sessionOn = false;
+  clearInterval(state.sessionTimer);
+  state.sessionStart = null;
+  document.getElementById('sess_toggle').textContent = 'START';
+  document.getElementById('sess_timer').textContent = '00:00:00';
+  document.getElementById('hdr_pill').textContent = '● OFF';
+  document.getElementById('hdr_pill').classList.remove('on');
+  updateStats();
+}
+function tickTimer() {
+  if (!state.sessionStart) return;
+  const e = Math.floor((Date.now()-state.sessionStart)/1000);
+  const h=Math.floor(e/3600), m=Math.floor((e%3600)/60), s=e%60;
+  document.getElementById('sess_timer').textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+  document.getElementById('sess_timer').style.color = 'var(--text)';
+}
+function pad(n) { return String(n).padStart(2,'0'); }
 
-// ── MARKERS ─────────────────────────────────────────────────────────────
-function mi(st,f){
-  const c=C[st]||'#00ffcc',o=f?0.15:1;
-  return L.divIcon({
-    html:`<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" opacity="${o}"><rect x="1.5" y="1.5" width="13" height="13" fill="${c}18" stroke="${c}" stroke-width="1.5"/><rect x="4" y="4" width="3" height="3" fill="${c}"/><rect x="9" y="4" width="3" height="3" fill="${c}"/><rect x="5" y="9" width="6" height="2" fill="${c}"/><rect x="3" y="7" width="1.5" height="2" fill="${c}66"/><rect x="11.5" y="7" width="1.5" height="2" fill="${c}66"/></svg>`,
-    className:'',iconSize:[16,16],iconAnchor:[8,8],popupAnchor:[0,-10]
-  });
+function updateStats() {
+  const bbVal = parseFloat(document.getElementById('s_bbval').value)||2;
+  const totalBB = state.hands.reduce((s,h)=>s+h.result,0);
+  const wins = state.hands.filter(h=>h.result>0).length;
+  const wr = state.hands.length ? ((wins/state.hands.length)*100).toFixed(0)+'%' : '—';
+  let streak=0;
+  for(let i=state.hands.length-1;i>=0;i--){
+    if(i===state.hands.length-1||(state.hands[i].result>0)===(state.hands[i+1]?.result>0)) streak++;
+    else break;
+  }
+  const profBB = document.getElementById('profit_bb');
+  profBB.textContent = (totalBB>=0?'+':'')+totalBB.toFixed(1)+' BB';
+  profBB.style.color = totalBB>=0?'var(--green)':'var(--red)';
+  document.getElementById('profit_eur').textContent = `≈ ${totalBB>=0?'+':''}${(totalBB*bbVal).toFixed(0)} €`;
+  document.getElementById('s_hands').textContent = state.hands.length;
+  document.getElementById('s_wr').textContent = wr;
+  const strEl = document.getElementById('s_streak');
+  strEl.textContent = (streak>1?(state.hands[state.hands.length-1]?.result>=0?'+':'-'):'')+streak;
+  strEl.style.color = streak>2?(state.hands[state.hands.length-1]?.result>=0?'var(--green)':'var(--red)'):'var(--amber)';
 }
 
-function initMarkers(){
-  const s=D.reduce((a,i)=>{a[i.status]=(a[i.status]||0)+1;return a},{});
-  document.getElementById('co').textContent=s.OK||0;
-  document.getElementById('cd').textContent=s.damaged||0;
-  document.getElementById('cx').textContent=s.destroyed||0;
-  document.getElementById('ch').textContent=s.hidden||0;
-  D.forEach(inv=>{
-    if(!inv.obf_lat||!inv.obf_lng)return;
-    const m=L.marker([inv.obf_lat,inv.obf_lng],{icon:mi(inv.status,fl.has(inv.id)),invStatus:inv.status,invId:inv.id});
-    m.bindPopup(()=>pop(inv),{minWidth:170});
-    mk[inv.id]=m;
-  });
-  rn();
-  document.getElementById('fn').textContent=fl.size;
+function logHand() {
+  const res = parseFloat(document.getElementById('log_res').value);
+  if (isNaN(res)) { alert('Saisis le résultat (en BB)'); return; }
+  const hand = {
+    id: Date.now(),
+    h1: state.cards.log_h1, h2: state.cards.log_h2,
+    result: res,
+    street: document.getElementById('log_street').value,
+    note: document.getElementById('log_note').value,
+    ts: new Date().toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'}),
+  };
+  state.hands.unshift(hand);
+  save();
+  document.getElementById('log_res').value=''; document.getElementById('log_note').value='';
+  state.cards.log_h1=null; state.cards.log_h2=null;
+  ['log_h1','log_h2'].forEach(renderSlot);
+  renderLog(); updateStats();
 }
 
-function pop(inv){
-  const f=fl.has(inv.id);
-  const arr=getArr(inv.id);
-  const navUrl=`https://maps.apple.com/?daddr=${inv.obf_lat},${inv.obf_lng}&dirflg=w`;
-  const gmUrl=`https://www.google.com/maps/dir/?api=1&destination=${inv.obf_lat},${inv.obf_lng}&travelmode=walking`;
-  return `<div>
-    <div class="pi">${inv.id}</div>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
-      <div class="ps ${inv.status}">${inv.status.toUpperCase()}</div>
-      ${arr?`<div style="font-size:9px;color:#555">${arr}e arr.</div>`:''}
-    </div>
-    ${inv.hint?`<div class="ph">💡 ${inv.hint}</div>`:''}
-    <div class="pa">
-      <button class="pb pf ${f?'fl':''}" onclick="tfl('${inv.id}',this)">${f?'✓ FLASHÉ':'⚡ FLASH'}</button>
-      <a href="${inv.instagramUrl}" target="_blank" class="pb">📸 INSTA</a>
-    </div>
-    <div class="pa">
-      <a href="${navUrl}" target="_blank" class="pb pnav">🗺 APPLE</a>
-      <a href="${gmUrl}" target="_blank" class="pb pnav">📍 GMAPS</a>
+function quickLog() {
+  if (!state.lastAnalysis) return;
+  const res = prompt('Résultat (en BB) ? Ex: +12 ou -8');
+  if (res===null) return;
+  const r = parseFloat(res);
+  if (isNaN(r)) return;
+  state.hands.unshift({id:Date.now(),h1:state.lastAnalysis.hole[0],h2:state.lastAnalysis.hole[1],result:r,street:state.street,note:'',ts:new Date().toLocaleTimeString('fr',{hour:'2-digit',minute:'2-digit'})});
+  save(); updateStats();
+}
+
+function renderLog() {
+  const el = document.getElementById('hand_log');
+  if (!state.hands.length) { el.innerHTML='<div style="text-align:center;padding:24px;color:var(--muted);font-size:12px">Aucune main loggée</div>'; return; }
+  el.innerHTML = state.hands.slice(0,30).map(h => {
+    const mc = card => {
+      if (!card) return `<div class="mini-card"><span style="color:var(--muted);font-size:11px">?</span></div>`;
+      const isR = RED_SUITS.has(card.suit);
+      return `<div class="mini-card${isR?' red-card':''}"><span class="mini-rank">${card.rank}</span><span class="mini-suit">${card.suit}</span></div>`;
+    };
+    return `<div class="hand-entry">
+      <div style="display:flex;gap:3px">${mc(h.h1)}${mc(h.h2)}</div>
+      <div style="flex:1">
+        <div class="t-display" style="font-size:16px;color:${h.result>=0?'var(--green)':'var(--red)'}">${h.result>=0?'+':''}${h.result}BB</div>
+        <div style="font-size:9px;color:var(--muted2)">${h.street} · ${h.ts}${h.note?' · '+h.note.substring(0,30):''}</div>
+      </div>
+      <div style="cursor:pointer;color:var(--muted);padding:4px" onclick="delHand(${h.id})">🗑</div>
+    </div>`;
+  }).join('');
+}
+
+function delHand(id) { state.hands=state.hands.filter(h=>h.id!==id); save(); renderLog(); updateStats(); }
+
+// ── PUSH/FOLD ────────────────────────
+const RANKS_PF = RANKS; // same
+
+function pfThreshold(ri, rj, pos) {
+  const r1=14-ri, r2=14-rj;
+  const paired=ri===rj, suited=ri<rj;
+  const hi=paired?r1:Math.max(r1,r2), lo=paired?r1:Math.min(r1,r2);
+  const pm = {UTG:.7,MP:.75,CO:.85,BTN:1,SB:1.1,BB:1.2}[pos]||1;
+  let t;
+  if (paired) { t = hi>=12?25 : hi>=10?20 : hi>=8?14 : hi>=6?10 : hi>=4?7 : 5; }
+  else {
+    const base = hi>=12?18 : hi>=10?12 : hi>=8?8 : hi>=6?5 : 3;
+    const sb = suited?1.3:1, gp = (hi-lo)<=1?1:(hi-lo)<=2?.8:(hi-lo)<=3?.65:.5;
+    t = base*sb*gp; if (hi===14) t*=1.2;
+  }
+  return Math.min(25, Math.round(t*pm*10)/10);
+}
+
+function pf_update() {
+  const stack = parseInt(document.getElementById('pf_slider').value)||10;
+  document.getElementById('pf_bb_display').textContent = stack+' BB';
+  const pos = state.pfPos;
+  let html = '';
+  for (let i=0;i<13;i++) for (let j=0;j<13;j++) {
+    const r1=RANKS_PF[i], r2=RANKS_PF[j];
+    const paired=i===j, suited=i<j;
+    const label = paired?r1+r1:(suited?r1+r2+'s':r2+r1+'o');
+    const th = pfThreshold(i,j,pos);
+    const cls = stack<=th-2?'push':stack<=th+2?'marginal':'fold';
+    html += `<div class="pf-cell ${cls}" onclick="pfDetail('${label}',${th},${stack},'${cls}')">${label.length<=3?label:label.slice(0,2)}</div>`;
+  }
+  document.getElementById('pf_matrix').innerHTML = html;
+}
+
+function pfDetail(hand, th, stack, cls) {
+  document.querySelectorAll('.pf-cell').forEach(c=>c.classList.remove('selected'));
+  event.target.classList.add('selected');
+  const titles = {push:'PUSH 🟢',marginal:'MARGINAL 🟡',fold:'FOLD 🔴'};
+  const bodies = {
+    push:`Avec <strong>${stack} BB</strong>, <strong>${hand}</strong> est un push Nash EV+ en <strong>${state.pfPos}</strong>.<br>Threshold jusqu'à <strong>${th} BB</strong>. Ship it.`,
+    marginal:`Zone limite. Threshold Nash : ~${th} BB.<br>→ Push si villain(s) tight (fold equity élevée).<br>→ Fold si villain loose ou pression ICM bubble.`,
+    fold:`Fold avec <strong>${stack} BB</strong>. Besoin de <strong>${th} BB</strong> minimum pour que ce soit EV+.<br>${th<3?'Main trop faible quelle que soit la situation.':'Attends une meilleure main ou une position plus favorable.'}`,
+  };
+  const colors = {push:'var(--green)',marginal:'var(--amber)',fold:'var(--red)'};
+  const d = document.getElementById('pf_detail');
+  d.style.display='block';
+  d.className='card '+(cls==='push'?'green':cls==='marginal'?'amber':'red');
+  d.innerHTML=`<div class="card-title" style="color:${colors[cls]}">${titles[cls]} — ${hand}</div><div class="card-body">${bodies[cls]}</div>`;
+}
+
+function setPfPos(p, el) {
+  state.pfPos = p;
+  document.querySelectorAll('#pf_pos_grid .pos-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  pf_update();
+}
+
+// ── BLIND CLOCK ──────────────────────
+function bcReset() { state.bcTimeLeft=(parseInt(document.getElementById('bc_dur').value)||20)*60; bcRender(); }
+function bcRender() {
+  const lv = BC_LEVELS[state.bcLevel]||BC_LEVELS[BC_LEVELS.length-1];
+  const nx = BC_LEVELS[state.bcLevel+1];
+  document.getElementById('bc_num').textContent = state.bcLevel+1;
+  document.getElementById('bc_blinds').textContent = `${lv.sb.toLocaleString()} / ${lv.bb.toLocaleString()}`;
+  document.getElementById('bc_next_lv').textContent = nx?`→ Prochain : ${nx.sb.toLocaleString()} / ${nx.bb.toLocaleString()}`:'Dernier niveau';
+  document.getElementById('bc_lvl_in').value = state.bcLevel+1;
+  bcTick();
+}
+function bcTick() {
+  const m=Math.floor(state.bcTimeLeft/60), s=state.bcTimeLeft%60;
+  const el=document.getElementById('bc_time');
+  el.textContent=`${pad(m)}:${pad(s)}`;
+  el.className='blind-time'+(state.bcTimeLeft<=120?' critical':state.bcTimeLeft<=300?' warn':'');
+}
+function bcToggle() {
+  if (state.bcRunning) {
+    state.bcRunning=false; clearInterval(state.bcInterval);
+    document.getElementById('bc_playbtn').textContent='▶ START';
+  } else {
+    state.bcRunning=true;
+    document.getElementById('bc_playbtn').textContent='⏸ PAUSE';
+    state.bcInterval=setInterval(()=>{ if(state.bcTimeLeft>0){state.bcTimeLeft--;bcTick();}else{bcNext();} },1000);
+  }
+}
+function bcNext() { state.bcLevel=Math.min(state.bcLevel+1,BC_LEVELS.length-1); bcReset(); bcRender(); }
+function bcPrev() { state.bcLevel=Math.max(state.bcLevel-1,0); bcReset(); bcRender(); }
+function bcGoLevel(i){ state.bcLevel=Math.max(0,Math.min(i,BC_LEVELS.length-1)); bcReset(); bcRender(); }
+
+// ── ICM LADDER ────────────────────────
+function buildLadder() {
+  const prize=parseInt(document.getElementById('ldr_prize').value)||5000;
+  const myStack=parseInt(document.getElementById('ldr_mystack').value)||8000;
+  const totalChips=parseInt(document.getElementById('ldr_totalchips').value)||100000;
+  const remain=parseInt(document.getElementById('ldr_remain').value)||20;
+  const payouts=[.30,.20,.13,.09,.07,.05,.04,.03,.025,.02,.015,.01];
+  const places=Math.min(12,Math.ceil(parseInt(document.getElementById('ldr_remain').value||20)*.5));
+  const avgChips=totalChips/remain;
+  const myPct=myStack/totalChips;
+  document.getElementById('ladder_list').innerHTML=payouts.slice(0,places).map((pct,i)=>{
+    const euros=(prize*pct).toFixed(0);
+    const neededPct=pct*1.8; // approx chip% needed
+    const neededChips=Math.round(totalChips*neededPct);
+    const isCurrent=Math.abs(myPct-neededPct)<neededPct*.4;
+    const isBubble=i===0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;margin-bottom:4px;border:1px solid ${isCurrent?'var(--green)':isBubble?'var(--amber)':'var(--border)'};background:${isCurrent?'rgba(0,255,157,.04)':isBubble?'rgba(255,170,0,.04)':'var(--s1)'}">
+      <div class="t-display" style="font-size:20px;width:40px;flex-shrink:0;color:${i===0?'var(--amber)':i<=2?'var(--blue)':'var(--muted2)'}">${['🥇','🥈','🥉'][i]||('#'+(i+1))}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${euros}€</div><div style="font-size:10px;color:var(--muted2)">~${neededChips.toLocaleString()} chips nécessaires</div></div>
+      <div class="t-display" style="font-size:12px;color:${isCurrent?'var(--green)':'var(--purple)'}">${isCurrent?'◀ TOI':(pct*100).toFixed(0)+'%'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── REBUY ─────────────────────────────
+function calcRebuy() {
+  const cost=parseFloat(document.getElementById('rb_cost').value)||100;
+  const stack=parseFloat(document.getElementById('rb_stack').value)||10000;
+  const avg=parseFloat(document.getElementById('rb_avg').value)||15000;
+  const prize=parseFloat(document.getElementById('rb_prize').value)||5000;
+  const remain=parseInt(document.getElementById('rb_remain').value)||40;
+  const itm=parseInt(document.getElementById('rb_itm').value)||15;
+  const chipEV=(stack/avg)*(itm/remain);
+  const moneyEV=chipEV*prize;
+  const isEV=moneyEV>cost;
+  const roi=((moneyEV-cost)/cost*100).toFixed(0);
+  document.getElementById('rb_result').innerHTML=`<div class="card ${isEV?'green':'red'}" style="margin-top:0">
+    <div class="card-title ${isEV?'t-green':'t-red'}">${isEV?'✓ Rebuy EV+':'✗ Rebuy EV négatif'}</div>
+    <div class="card-body">
+      EV monétaire estimée : <strong>${moneyEV.toFixed(0)}€</strong><br>
+      Coût rebuy : <strong>${cost}€</strong><br>
+      ROI : <strong style="color:${isEV?'var(--green)':'var(--red)'}">${isEV?'+':''}${roi}%</strong><br>
+      ${isEV?`Rebuy rentable de <strong>${(moneyEV-cost).toFixed(0)}€</strong> en EV.`:`Perds <strong>${(cost-moneyEV).toFixed(0)}€</strong> en EV. Fold sauf edge fort sur le field.`}
     </div>
   </div>`;
 }
 
-function getArr(id){
-  // PA_XXX → arrondissement par numéro
-  // Estimation par coordonnées selon les ranges de numéros PA_
-  const inv=D.find(i=>i.id===id);
-  if(!inv||!inv.obf_lat)return null;
-  // Mapping lat/lng vers arrondissement Paris
-  return geoArr(inv.obf_lat,inv.obf_lng);
+// ── VILLAIN READS ─────────────────────
+let vSelectedProfile = null;
+
+function openVillainForm(idx) {
+  state.editingVillain = idx;
+  vSelectedProfile = null;
+  const v = idx>=0 ? state.villains[idx] : null;
+  document.getElementById('vform_title').textContent = v ? 'Modifier villain' : 'Nouveau villain';
+  document.getElementById('vf_name').value  = v?.name || '';
+  document.getElementById('vf_vpip').value  = v?.vpip || 28; document.getElementById('vf_vpip_v').textContent=(v?.vpip||28)+'%';
+  document.getElementById('vf_pfr').value   = v?.pfr  || 18; document.getElementById('vf_pfr_v').textContent=(v?.pfr||18)+'%';
+  document.getElementById('vf_3b').value    = v?.threeBet || 6; document.getElementById('vf_3b_v').textContent=(v?.threeBet||6)+'%';
+  document.getElementById('vf_fcb').value   = v?.fcb  || 55; document.getElementById('vf_fcb_v').textContent=(v?.fcb||55)+'%';
+  document.getElementById('vf_notes').value = v?.notes || '';
+  document.querySelectorAll('#vf_profile_pills .pill').forEach(p=>p.classList.remove('active'));
+  if (v?.profile) { vSelectedProfile=v.profile; document.querySelector(`#vf_profile_pills .pill[onclick*="${v.profile}"]`)?.classList.add('active'); }
+  document.querySelectorAll('#vf_tendencies .pill').forEach(p=>{ p.classList.toggle('active', v?.tendencies?.includes(p.textContent)||false); });
+  document.getElementById('villain_modal').classList.add('open');
 }
+function closeVillainForm() { document.getElementById('villain_modal').classList.remove('open'); }
+function selectVP(p, el) { vSelectedProfile=p; document.querySelectorAll('#vf_profile_pills .pill').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
 
-function geoArr(lat,lng){
-  // Approximation grossière des arrondissements de Paris par bounding boxes
-  if(lat>48.875&&lng<2.35)return 18;
-  if(lat>48.875&&lng>=2.35&&lng<2.37)return 19;
-  if(lat>48.875&&lng>=2.37)return 20;
-  if(lat>48.865&&lat<=48.875&&lng<2.34)return 17;
-  if(lat>48.865&&lat<=48.875&&lng>=2.34&&lng<2.36)return 9;
-  if(lat>48.865&&lat<=48.875&&lng>=2.36&&lng<2.375)return 10;
-  if(lat>48.865&&lat<=48.875&&lng>=2.375)return 11;
-  if(lat>48.855&&lat<=48.865&&lng<2.325)return 8;
-  if(lat>48.855&&lat<=48.865&&lng>=2.325&&lng<2.345)return 2;
-  if(lat>48.855&&lat<=48.865&&lng>=2.345&&lng<2.36)return 3;
-  if(lat>48.855&&lat<=48.865&&lng>=2.36&&lng<2.375)return 11;
-  if(lat>48.855&&lat<=48.865&&lng>=2.375)return 20;
-  if(lat>48.845&&lat<=48.855&&lng<2.32)return 7;
-  if(lat>48.845&&lat<=48.855&&lng>=2.32&&lng<2.335)return 1;
-  if(lat>48.845&&lat<=48.855&&lng>=2.335&&lng<2.355)return 4;
-  if(lat>48.845&&lat<=48.855&&lng>=2.355&&lng<2.375)return 12;
-  if(lat>48.845&&lat<=48.855&&lng>=2.375)return 12;
-  if(lat>48.835&&lat<=48.845&&lng<2.33)return 15;
-  if(lat>48.835&&lat<=48.845&&lng>=2.33&&lng<2.35)return 6;
-  if(lat>48.835&&lat<=48.845&&lng>=2.35&&lng<2.365)return 5;
-  if(lat>48.835&&lat<=48.845&&lng>=2.365)return 13;
-  if(lat<=48.835&&lng<2.31)return 15;
-  if(lat<=48.835&&lng>=2.31&&lng<2.35)return 14;
-  if(lat<=48.835&&lng>=2.35)return 13;
-  return null;
-}
-
-function rn(){
-  cg.clearLayers();let n=0;
-  Object.values(mk).forEach(m=>{if(af.has(m.options.invStatus)){cg.addLayer(m);n++;}});
-  document.getElementById('vn').textContent=n;
-}
-
-function tf(s){
-  af.has(s)?af.delete(s):af.add(s);
-  document.querySelectorAll('.stat').forEach(el=>{
-    const st=el.getAttribute('onclick').match(/'([^']+)'/)[1];
-    el.classList.toggle('on',af.has(st));el.classList.toggle('off',!af.has(st));
-  });
-  rn();
-}
-
-function si(v){
-  v=v.toUpperCase().trim();if(!v){rn();return;}
-  cg.clearLayers();let n=0;
-  Object.entries(mk).forEach(([id,m])=>{
-    if(id.includes(v)&&af.has(m.options.invStatus)){
-      cg.addLayer(m);n++;
-      if(n===1){const inv=D.find(i=>i.id===id);if(inv)map.setView([inv.obf_lat,inv.obf_lng],18);m.openPopup();}
-    }
-  });
-  document.getElementById('vn').textContent=n;
-}
-
-function tfl(id,btn){
-  if(fl.has(id)){fl.delete(id);btn.textContent='⚡ FLASH';btn.classList.remove('fl');}
-  else{fl.add(id);btn.textContent='✓ FLASHÉ';btn.classList.add('fl');}
-  const inv=D.find(i=>i.id===id);
-  if(inv&&mk[id])mk[id].setIcon(mi(inv.status,fl.has(id)));
-  localStorage.setItem('piv',JSON.stringify([...fl]));
-  document.getElementById('fn').textContent=fl.size;
-  if(radarOpen)updateRadarList();
-}
-
-// ── GPS ──────────────────────────────────────────────────────────────────
-function haversine(lat1,lng1,lat2,lng2){
-  const R=6371000,dLat=(lat2-lat1)*Math.PI/180,dLng=(lng2-lng1)*Math.PI/180;
-  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
-
-function toggleGps(){gpsOn?stopGps():startGps();}
-
-function startGps(){
-  if(!navigator.geolocation){alert('Géolocalisation non supportée');return;}
-  const btn=document.getElementById('gps-btn');
-  btn.classList.add('active');
-  document.getElementById('gps-info').style.color='var(--accent)';
-  document.getElementById('gps-info').textContent='GPS…';
-  navigator.geolocation.getCurrentPosition(pos=>{
-    onPos(pos);
-    gpsWatch=navigator.geolocation.watchPosition(onPos,onGpsErr,{enableHighAccuracy:true,timeout:30000,maximumAge:10000});
-    gpsOn=true;
-  },onGpsErr,{enableHighAccuracy:true,timeout:20000,maximumAge:0});
-}
-
-function stopGps(){
-  if(gpsWatch)navigator.geolocation.clearWatch(gpsWatch);
-  gpsOn=false;gpsWatch=null;myLat=null;myLng=null;
-  if(posMk){map.removeLayer(posMk);posMk=null;}
-  if(proxCircle){map.removeLayer(proxCircle);proxCircle=null;}
-  document.getElementById('gps-btn').classList.remove('active');
-  document.getElementById('gps-info').textContent='GPS OFF';
-  document.getElementById('gps-info').style.color='#333';
-  lastAlerted.clear();closeAlert();
-}
-
-function onPos(pos){
-  myLat=pos.coords.latitude;myLng=pos.coords.longitude;
-  const acc=Math.round(pos.coords.accuracy);
-  document.getElementById('gps-info').textContent=`±${acc}m`;
-  document.getElementById('gps-info').style.color=acc<30?'var(--ok)':acc<80?'var(--damaged)':'var(--destroyed)';
-  if(!posMk){
-    posMk=L.marker([myLat,myLng],{
-      icon:L.divIcon({html:'<div class="my-dot"></div>',className:'',iconSize:[14,14],iconAnchor:[7,7]}),
-      zIndexOffset:1000
-    }).addTo(map);
-    map.setView([myLat,myLng],17);
-  }else{posMk.setLatLng([myLat,myLng]);}
-  if(!proxCircle){
-    proxCircle=L.circle([myLat,myLng],{radius:PROX,color:'rgba(0,255,204,.4)',weight:1,fillOpacity:.04,dashArray:'5,8'}).addTo(map);
-  }else{
-    proxCircle.setLatLng([myLat,myLng]);
-    proxCircle.setRadius(PROX);
-  }
-  checkProximity();
-  if(radarOpen)updateRadarList();
-}
-
-function onGpsErr(e){
-  const msg={1:'REFUSÉ',2:'INDISPO',3:'TIMEOUT'};
-  document.getElementById('gps-info').textContent='GPS '+( msg[e.code]||'ERR');
-  document.getElementById('gps-info').style.color='var(--destroyed)';
-}
-
-function checkProximity(){
-  if(myLat===null)return;
-  const nearby=getNearby(PROX);
-  const newOnes=nearby.filter(i=>!lastAlerted.has(i.id));
-  if(newOnes.length>0){
-    newOnes.forEach(i=>lastAlerted.add(i.id));
-    alertInv=nearby[0];
-    showAlert(nearby);
-    if(navigator.vibrate)navigator.vibrate([200,80,200,80,400]);
-  }
-  lastAlerted.forEach(id=>{if(!nearby.find(i=>i.id===id))lastAlerted.delete(id);});
-  if(nearby.length===0)closeAlert();
-}
-
-function getNearby(radius){
-  if(myLat===null)return[];
-  const nearby=[];
-  D.forEach(inv=>{
-    if(!inv.obf_lat||!inv.obf_lng||fl.has(inv.id)||!af.has(inv.status))return;
-    const dist=haversine(myLat,myLng,inv.obf_lat,inv.obf_lng);
-    if(dist<=radius)nearby.push({...inv,dist:Math.round(dist)});
-  });
-  return nearby.sort((a,b)=>a.dist-b.dist);
-}
-
-function showAlert(nearby){
-  const c=nearby[0];
-  const more=nearby.length>1?` +${nearby.length-1}`:''
-  document.getElementById('alert-info').innerHTML=
-    `<b style="color:var(--ok);font-family:Orbitron,monospace">${c.id}</b> · <b>${c.dist}m</b>${more}`;
-  document.getElementById('alert').style.display='flex';
-}
-
-function closeAlert(){document.getElementById('alert').style.display='none';}
-
-function navClosest(){
-  if(!alertInv)return;
-  const url=`https://maps.apple.com/?daddr=${alertInv.obf_lat},${alertInv.obf_lng}&dirflg=w`;
-  window.open(url,'_blank');
-}
-
-// ── RADAR PANEL ──────────────────────────────────────────────────────────
-function toggleRadar(){
-  radarOpen=!radarOpen;
-  document.getElementById('radar').style.display=radarOpen?'flex':'none';
-  document.getElementById('radar-btn').classList.toggle('active',radarOpen);
-  if(radarOpen)updateRadarList();
-}
-
-function updateRadius(v){
-  PROX=parseInt(v);
-  document.getElementById('radius-val').textContent=v;
-  if(proxCircle)proxCircle.setRadius(PROX);
-  if(radarOpen)updateRadarList();
-  checkProximity();
-}
-
-function updateRadarList(){
-  const list=document.getElementById('radar-list');
-  if(myLat===null){
-    list.innerHTML='<div style="font-size:10px;color:#555;padding:8px">Active le GPS pour voir les invaders proches</div>';
-    return;
-  }
-  // Top 10 nearest (non flashés dans le rayon, ou tous les non-flashés si GPS actif)
-  const all=D.filter(inv=>inv.obf_lat&&inv.obf_lng&&!fl.has(inv.id)&&af.has(inv.status))
-    .map(inv=>({...inv,dist:Math.round(haversine(myLat,myLng,inv.obf_lat,inv.obf_lng))}))
-    .sort((a,b)=>a.dist-b.dist)
-    .slice(0,10);
-  
-  if(all.length===0){list.innerHTML='<div style="font-size:10px;color:#555;padding:8px">Aucun invader à flasher</div>';return;}
-  
-  list.innerHTML=all.map(inv=>{
-    const c=C[inv.status]||'#00ffcc';
-    const inR=inv.dist<=PROX;
-    return `<div class="radar-item${fl.has(inv.id)?' fl':''}" onclick="focusInv('${inv.id}')">
-      <div class="ri-id">${inv.id}</div>
-      <div class="ri-dist" style="color:${inR?'var(--ok)':'#777'}">${inv.dist}m</div>
-      <div class="ri-status" style="background:${c}18;color:${c};border:1px solid ${c}">${inv.status.toUpperCase()}</div>
-      <div class="ri-hint">${inv.hint||''}</div>
-      <button class="ri-nav" onclick="event.stopPropagation();navTo(${inv.obf_lat},${inv.obf_lng})">🗺</button>
-    </div>`;
-  }).join('');
-}
-
-function focusInv(id){
-  const inv=D.find(i=>i.id===id);
-  if(!inv)return;
-  map.setView([inv.obf_lat,inv.obf_lng],18);
-  if(mk[id])mk[id].openPopup();
-}
-
-function navTo(lat,lng){
-  const url=`https://maps.apple.com/?daddr=${lat},${lng}&dirflg=w`;
-  window.open(url,'_blank');
-}
-
-// ── RANDO (TSP nearest neighbor) ──────────────────────────────────────────
-function toggleRando(){
-  randoOpen=!randoOpen;
-  document.getElementById('rando-panel').style.display=randoOpen?'block':'none';
-  document.getElementById('rando-btn').classList.toggle('active',randoOpen);
-}
-
-function calcRando(){
-  if(myLat===null){alert('Active le GPS d\'abord');return;}
-  const n=parseInt(document.getElementById('rando-n').value);
-  const r=parseInt(document.getElementById('rando-r').value);
-  
-  // Filtrer les candidats
-  const candidates=D.filter(inv=>inv.obf_lat&&inv.obf_lng&&!fl.has(inv.id)&&af.has(inv.status))
-    .map(inv=>({...inv,dist:Math.round(haversine(myLat,myLng,inv.obf_lat,inv.obf_lng))}))
-    .filter(inv=>inv.dist<=r)
-    .sort((a,b)=>a.dist-b.dist)
-    .slice(0,Math.min(n*3,60)); // pool élargi pour TSP
-  
-  if(candidates.length===0){
-    document.getElementById('rando-route').innerHTML='<div style="font-size:10px;color:var(--destroyed);padding:8px">Aucun invader dans ce rayon</div>';
-    document.getElementById('rando-route').style.display='block';
-    return;
-  }
-  
-  // TSP nearest neighbor depuis position actuelle
-  const route=tspNN(myLat,myLng,candidates,n);
-  displayRoute(route);
-}
-
-function tspNN(startLat,startLng,candidates,maxN){
-  const visited=new Set();
-  const route=[];
-  let curLat=startLat,curLng=startLng;
-  
-  while(route.length<maxN&&visited.size<candidates.length){
-    let best=null,bestDist=Infinity;
-    candidates.forEach(inv=>{
-      if(visited.has(inv.id))return;
-      const d=haversine(curLat,curLng,inv.obf_lat,inv.obf_lng);
-      if(d<bestDist){bestDist=d;best=inv;}
-    });
-    if(!best)break;
-    visited.add(best.id);
-    route.push({...best,leg:Math.round(bestDist)});
-    curLat=best.obf_lat;curLng=best.obf_lng;
-  }
-  return route;
-}
-
-function displayRoute(route){
-  // Supprimer ancienne route
-  if(routeLayer){map.removeLayer(routeLayer);routeLayer=null;}
-  
-  if(route.length===0)return;
-  
-  // Tracer la route sur la carte
-  const pts=[[myLat,myLng],...route.map(inv=>[inv.obf_lat,inv.obf_lng])];
-  routeLayer=L.polyline(pts,{color:'rgba(0,255,204,.5)',weight:2,dashArray:'6,4'}).addTo(map);
-  map.fitBounds(routeLayer.getBounds(),{padding:[30,30]});
-  
-  // Total distance
-  const total=route.reduce((s,inv)=>s+inv.leg,0);
-  
-  // Afficher la liste
-  const div=document.getElementById('rando-route');
-  div.style.display='block';
-  div.innerHTML=`
-    <div style="font-size:10px;color:#555;padding:4px 0;margin-bottom:4px;border-bottom:1px solid #1a1a2e">
-      ${route.length} stops · ~${total}m à pied · ~${Math.round(total/80)}min
-    </div>
-    ${route.map((inv,i)=>`
-      <div class="rando-stop">
-        <div class="rando-stop-num">${i+1}</div>
-        <div class="rando-stop-id">${inv.id}</div>
-        <div class="rando-stop-d">+${inv.leg}m</div>
-        <button class="rando-stop-nav" onclick="navTo(${inv.obf_lat},${inv.obf_lng})">🗺</button>
-        <button class="rando-stop-nav" onclick="focusInv('${inv.id}')">📍</button>
-      </div>`).join('')}
-    <button onclick="clearRoute()" style="width:100%;margin-top:6px;background:transparent;border:1px solid #252535;color:#555;font-family:'Share Tech Mono',monospace;font-size:10px;padding:4px;cursor:pointer;border-radius:2px;">✕ EFFACER ROUTE</button>
-  `;
-}
-
-function clearRoute(){
-  if(routeLayer){map.removeLayer(routeLayer);routeLayer=null;}
-  document.getElementById('rando-route').style.display='none';
-}
-
-// ── STATS ────────────────────────────────────────────────────────────────
-function showStats(){
-  const panel=document.getElementById('stats-panel');
-  panel.style.display='flex';
-  renderStats();
-}
-
-function hideStats(){
-  document.getElementById('stats-panel').style.display='none';
-}
-
-function renderStats(){
-  const total=D.length;
-  const flashedCount=fl.size;
-  const pct=Math.round(flashedCount/total*100);
-  
-  // Stats globales
-  const sg=document.getElementById('stats-global');
-  sg.innerHTML=`
-    <div class="sg-card">
-      <div class="sg-val">${flashedCount}</div>
-      <div class="sg-lbl">FLASHÉS</div>
-      <div class="sg-bar"><div class="sg-bar-fill" style="width:${pct}%"></div></div>
-    </div>
-    <div class="sg-card">
-      <div class="sg-val">${pct}%</div>
-      <div class="sg-lbl">PROGRESSION</div>
-      <div class="sg-bar"><div class="sg-bar-fill" style="width:${pct}%"></div></div>
-    </div>
-    <div class="sg-card">
-      <div class="sg-val">${total-flashedCount}</div>
-      <div class="sg-lbl">RESTANTS</div>
-    </div>
-    <div class="sg-card">
-      <div class="sg-val">${total}</div>
-      <div class="sg-lbl">TOTAL</div>
-    </div>
-  `;
-  
-  // Stats par arrondissement
-  const byArr={};
-  D.forEach(inv=>{
-    if(!inv.obf_lat)return;
-    const arr=geoArr(inv.obf_lat,inv.obf_lng)||0;
-    if(!byArr[arr])byArr[arr]={total:0,flashed:0,OK:0,damaged:0,destroyed:0,hidden:0};
-    byArr[arr].total++;
-    byArr[arr][inv.status]=(byArr[arr][inv.status]||0)+1;
-    if(fl.has(inv.id))byArr[arr].flashed++;
-  });
-  
-  const sorted=Object.entries(byArr).sort((a,b)=>{
-    const pa=a[1].flashed/a[1].total;const pb=b[1].flashed/b[1].total;
-    return pb-pa;
-  });
-  
-  const grid=document.getElementById('arr-grid');
-  grid.innerHTML=sorted.map(([arr,s])=>{
-    const p=Math.round(s.flashed/s.total*100);
-    return `<div class="arr-card" onclick="focusArr(${arr})">
-      <div class="arr-num">${arr?arr+'<sup>e</sup> ARR.':' ?'}</div>
-      <div class="arr-prog">${s.flashed}/${s.total} · ${p}%</div>
-      <div class="arr-bar"><div class="arr-bar-fill" style="width:${p}%"></div></div>
-      <div class="arr-counts">
-        <span style="color:#00ff88">${s.OK||0}✓</span>
-        <span style="color:#ffaa00">${s.damaged||0}!</span>
-        <span style="color:#ff3355">${s.destroyed||0}✗</span>
-        <span style="color:#8888ff">${s.hidden||0}?</span>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function focusArr(arr){
-  hideStats();
-  if(!arr)return;
-  // Zoomer sur les invaders de cet arrondissement
-  const invs=D.filter(inv=>inv.obf_lat&&geoArr(inv.obf_lat,inv.obf_lng)===arr);
-  if(invs.length===0)return;
-  const lats=invs.map(i=>i.obf_lat),lngs=invs.map(i=>i.obf_lng);
-  map.fitBounds([[Math.min(...lats),Math.min(...lngs)],[Math.max(...lats),Math.max(...lngs)]],{padding:[20,20]});
-}
-
-// ── EXPORT / IMPORT / RESET ───────────────────────────────────────────────
-function ef(){
-  const b=new Blob([JSON.stringify([...fl])],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='flashed.json';a.click();
-}
-function ifn(){
-  const inp=document.createElement('input');inp.type='file';inp.accept='.json';
-  inp.onchange=e=>{
-    const r=new FileReader();
-    r.onload=ev=>{
-      try{
-        fl=new Set(JSON.parse(ev.target.result));
-        localStorage.setItem('piv',JSON.stringify([...fl]));
-        D.forEach(inv=>{if(mk[inv.id])mk[inv.id].setIcon(mi(inv.status,fl.has(inv.id)));});
-        document.getElementById('fn').textContent=fl.size;
-        alert(`${fl.size} invaders importés ✓`);
-      }catch(e){alert('Fichier invalide');}
-    };
-    r.readAsText(e.target.files[0]);
+function saveVillain() {
+  const tendencies = [...document.querySelectorAll('#vf_tendencies .pill.active')].map(p=>p.textContent);
+  const v = {
+    name: document.getElementById('vf_name').value || `Villain ${state.villains.length+1}`,
+    profile: vSelectedProfile || 'unknown',
+    vpip: parseInt(document.getElementById('vf_vpip').value),
+    pfr:  parseInt(document.getElementById('vf_pfr').value),
+    threeBet: parseInt(document.getElementById('vf_3b').value),
+    fcb:  parseInt(document.getElementById('vf_fcb').value),
+    tendencies, notes: document.getElementById('vf_notes').value,
   };
-  inp.click();
-}
-function cf(){
-  if(!confirm('Reset tous les invaders flashés ?'))return;
-  fl.clear();localStorage.setItem('piv','[]');
-  D.forEach(inv=>{if(mk[inv.id])mk[inv.id].setIcon(mi(inv.status,false));});
-  document.getElementById('fn').textContent=0;
+  if (state.editingVillain>=0) state.villains[state.editingVillain]=v;
+  else state.villains.push(v);
+  save(); closeVillainForm(); renderVillainList();
 }
 
-// ── SERVICE WORKER ────────────────────────────────────────────────────────
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('./sw.js').then(()=>{
-    console.log('SW registered');
-  }).catch(e=>console.log('SW error:',e));
+function renderVillainList() {
+  const el = document.getElementById('villain_list');
+  if (!state.villains.length) {
+    el.innerHTML='<div class="card" style="text-align:center;color:var(--muted2);font-size:12px">Aucun villain trackéi.<br>Ajoute tes adversaires pour générer des exploits.</div>';
+    return;
+  }
+  const emoji = {fish:'🐟',lag:'🔥',tag:'🎯',nit:'🧊',maniac:'💣',reg:'♟',unknown:'🤷'};
+  el.innerHTML = state.villains.map((v,i) => {
+    const tips = getExploit(v);
+    return `<div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <div class="t-display" style="font-size:15px">${emoji[v.profile]||'?'} ${v.name}</div>
+          <div style="display:flex;gap:6px;margin-top:5px">
+            <span class="badge">VPIP ${v.vpip}%</span>
+            <span class="badge">PFR ${v.pfr}%</span>
+            <span class="badge">3-Bet ${v.threeBet}%</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-ghost btn-sm" onclick="openVillainForm(${i})">✏️</button>
+          <button class="btn btn-ghost btn-sm" onclick="deleteVillain(${i})">🗑</button>
+        </div>
+      </div>
+      ${tips.length?`<div style="border-top:1px solid var(--border);padding-top:8px;margin-top:4px"><div class="t-label" style="margin-bottom:5px">Exploits</div><div class="card-body">${tips.join('<br>')}</div></div>`:''}
+      ${v.notes?`<div style="margin-top:6px;font-size:11px;color:var(--muted2);border-top:1px solid var(--border);padding-top:6px">${v.notes}</div>`:''}
+    </div>`;
+  }).join('');
 }
+function deleteVillain(i) { if(confirm('Supprimer ce villain ?')){ state.villains.splice(i,1); save(); renderVillainList(); } }
 
-loadData();
+// ── INIT ──────────────────────────────
+load();
+['h1','h2','v1','v2','b1','b2','b3','b4','b5','log_h1','log_h2'].forEach(renderSlot);
+initRange();
+updateTourneyLive();
+pf_update();
+bcReset();
+buildLadder();
+updateStats();
+renderLog();
+renderVillainList();
+
+// PWA Service Worker — avec nettoyage forcé des SW étrangers
+if ('serviceWorker' in navigator) {
+  // Désinstalle TOUS les SW qui ne sont pas le nôtre
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    const foreign = regs.filter(r => {
+      const url = r.active?.scriptURL || r.installing?.scriptURL || r.waiting?.scriptURL || '';
+      return !url.includes('/poker-advisor/sw.js');
+    });
+    if (foreign.length > 0) {
+      Promise.all(foreign.map(r => r.unregister())).then(() => {
+        // Vide tous les caches étrangers
+        caches.keys().then(keys =>
+          Promise.all(keys.filter(k => !k.startsWith('aceiq')).map(k => caches.delete(k)))
+        );
+        console.log(`[ACE•IQ] ${foreign.length} SW étranger(s) désinstallé(s)`);
+      });
+    }
+    // Enregistre notre propre SW
+    navigator.serviceWorker.register('/poker-advisor/sw.js', {
+      scope: '/poker-advisor/'
+    }).catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
